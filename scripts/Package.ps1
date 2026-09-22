@@ -28,7 +28,7 @@ function Get-Sha256([string]$Path) {
 
 New-Item -ItemType Directory -Path $releaseRoot, $sourceRoot -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $Artifacts "$appName.exe"), (Join-Path $Root 'README.md'), (Join-Path $Root 'LICENSE') -Destination $releaseRoot
-Copy-Item -LiteralPath (Join-Path $Root 'src'), (Join-Path $Root 'tests'), (Join-Path $Root 'scripts'), (Join-Path $Root 'README.md'), (Join-Path $Root 'LICENSE'), (Join-Path $Root 'build.cmd') -Destination $sourceRoot -Recurse
+Copy-Item -LiteralPath (Join-Path $Root '.github'), (Join-Path $Root 'src'), (Join-Path $Root 'tests'), (Join-Path $Root 'scripts'), (Join-Path $Root 'README.md'), (Join-Path $Root 'LICENSE'), (Join-Path $Root 'SECURITY.md'), (Join-Path $Root 'TESTING.md'), (Join-Path $Root 'THIRD_PARTY_NOTICES.md'), (Join-Path $Root 'build.cmd') -Destination $sourceRoot -Recurse
 
 $personalPattern = 'C:\\Users\\ghdwn|REAPER Media|reaper-license|license\.rk|CodexSandbox'
 $sourceFiles = Get-ChildItem -LiteralPath $sourceRoot -Recurse -File | Where-Object { $_.Name -ne 'Package.ps1' }
