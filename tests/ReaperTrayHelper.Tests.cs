@@ -20,12 +20,25 @@ internal static class ReaperTrayHelperTests
 
     public static void Main(string[] args)
     {
-        string root = Path.GetFullPath(args[0]);
-        Directory.CreateDirectory(root);
-        TestSettings(root);
-        TestStartupManager(root);
-        TestProcessSelection(root);
-        Console.WriteLine("Total: " + passed + " tests passed.");
+        try
+        {
+            string root = Path.GetFullPath(args[0]);
+            Directory.CreateDirectory(root);
+            TestSettings(root);
+            TestTrackHotkeys();
+            TestGlobalHotkeyRegistration();
+            TestOscBridge();
+            TestStartupManager(root);
+            TestProcessSelection(root);
+            Console.WriteLine("Total: " + passed + " tests passed.");
+        }
+        catch (Exception exception)
+        {
+            Console.Error.WriteLine("FAIL: unhandled " + exception.GetType().FullName);
+            Console.Error.WriteLine(exception.Message);
+            Console.Error.WriteLine(exception.StackTrace);
+            Environment.ExitCode = 1;
+        }
     }
 
     private static void TestSettings(string root)
@@ -35,14 +48,25 @@ internal static class ReaperTrayHelperTests
         File.WriteAllText(reaper, "test placeholder - never launched");
         File.WriteAllText(project, "test placeholder - never opened");
 
-        var settings = new AppSettings { ReaperPath = reaper, ProjectPath = project, StartWithWindows = true };
+        var settings = new AppSettings
+        {
+            ReaperPath = reaper,
+            ProjectPath = project,
+            StartWithWindows = true,
+            ReaperOscPort = 8000,
+            ReaperScriptCommandId = "_RSabc123",
+            TrackHotkeys = new List<TrackHotkeyBinding>
+            {
+                new TrackHotkeyBinding { TrackName = "마이크", Modifiers = GlobalHotkeyManager.MOD_CONTROL | GlobalHotkeyManager.MOD_ALT, VirtualKey = (int)System.Windows.Forms.Keys.D1 }
+            }
+        };
         Check(settings.ValidationError() == null, "valid settings");
         Check(settings.Arguments == "\"" + project + "\"", "quoted project argument with spaces and Unicode");
 
         string settingsFile = Path.Combine(root, "settings.xml");
         settings.Save(settingsFile);
         AppSettings restored = AppSettings.Load(settingsFile);
-        Check(restored.ReaperPath == reaper && restored.ProjectPath == project && restored.StartWithWindows, "settings XML round trip");
+        Check(restored.ReaperPath == reaper && restored.ProjectPath == project && restored.StartWithWindows && restored.TrackHotkeys.Count == 1 && restored.TrackHotkeys[0].TrackName == "마이크", "settings XML round trip includes track hotkeys");
 
         settings.ProjectPath = "";
         Check(settings.ValidationError() == null && settings.Arguments == "", "project is optional");
@@ -57,6 +81,52 @@ internal static class ReaperTrayHelperTests
         Check(Throws(delegate { AppSettings.Load(settingsFile); }), "reject corrupt configuration");
         File.WriteAllText(settingsFile, "<!DOCTYPE test [<!ENTITY test SYSTEM 'file:///not-read'>]><AppSettings><ReaperPath>&test;</ReaperPath></AppSettings>");
         Check(Throws(delegate { AppSettings.Load(settingsFile); }), "reject XML external entity");
+
+        string escapedReaper = System.Security.SecurityElement.Escape(reaper);
+        File.WriteAllText(settingsFile, "<AppSettings><ReaperPath>" + escapedReaper + "</ReaperPath><ProjectPath></ProjectPath><StartWithWindows>false</StartWithWindows></AppSettings>");
+        AppSettings legacy = AppSettings.Load(settingsFile);
+        Check(legacy.TrackHotkeys != null && legacy.TrackHotkeys.Count == 0 && legacy.ValidationError() == null, "load existing settings without hotkey fields");
+    }
+
+    private static void TestTrackHotkeys()
+    {
+        var first = new TrackHotkeyBinding { TrackName = "MIC 한글", Modifiers = GlobalHotkeyManager.MOD_CONTROL | GlobalHotkeyManager.MOD_ALT, VirtualKey = (int)System.Windows.Forms.Keys.D1 };
+        var second = new TrackHotkeyBinding { TrackName = "MUSIC", Modifiers = GlobalHotkeyManager.MOD_CONTROL | GlobalHotkeyManager.MOD_ALT, VirtualKey = (int)System.Windows.Forms.Keys.D2 };
+        Check(TrackHotkeyBinding.ValidationError(new[] { first, second }) == null, "allow independent hotkeys for distinct tracks");
+        Check(first.DisplayShortcut == "Ctrl+Alt+D1", "format configured shortcut");
+        Check(TrackHotkeyBinding.ValidationError(new[] { first, new TrackHotkeyBinding { TrackName = "Other", Modifiers = first.Modifiers, VirtualKey = first.VirtualKey } }) != null, "reject duplicate key combination");
+        Check(TrackHotkeyBinding.ValidationError(new[] { first, new TrackHotkeyBinding { TrackName = "MIC 한글", Modifiers = GlobalHotkeyManager.MOD_CONTROL, VirtualKey = (int)System.Windows.Forms.Keys.D2 } }) != null, "reject duplicate track assignment");
+        Check(TrackHotkeyBinding.ValidationError(new[] { new TrackHotkeyBinding { TrackName = "MIC", Modifiers = 0, VirtualKey = (int)System.Windows.Forms.Keys.D1 } }) != null, "require modifier for global shortcut");
+        Check(TrackHotkeyBinding.ValidationError(new[] { new TrackHotkeyBinding { TrackName = "MIC", Modifiers = GlobalHotkeyManager.MOD_CONTROL, VirtualKey = (int)System.Windows.Forms.Keys.F12 } }) != null, "reject reserved F12 shortcut");
+        Check(TrackHotkeyBinding.ValidationError(new TrackHotkeyBinding[0]) == null, "allow no configured global shortcuts");
+    }
+
+    private static void TestOscBridge()
+    {
+        Check(ReaperOscBridge.IsValidCommandId("_RSabc123"), "accept REAPER script command ID");
+        Check(!ReaperOscBridge.IsValidCommandId("123"), "reject malformed REAPER command ID");
+        byte[] packet = ReaperOscBridge.BuildOscActionPacket("_RSabc123");
+        Check(System.Text.Encoding.UTF8.GetString(packet, 0, 12) == "/action/str\0", "OSC packet uses ACTION string address");
+        Check(Array.IndexOf(packet, (byte)',') >= 0 && Array.IndexOf(packet, (byte)'s') >= 0, "OSC packet declares string argument");
+        Check(System.Text.Encoding.UTF8.GetString(packet).Contains("_RSabc123"), "OSC packet includes ReaScript command ID");
+    }
+
+    private static void TestGlobalHotkeyRegistration()
+    {
+        var registry = new FakeHotkeyRegistry();
+        var first = new TrackHotkeyBinding { TrackName = "MIC", Modifiers = GlobalHotkeyManager.MOD_CONTROL | GlobalHotkeyManager.MOD_ALT, VirtualKey = (int)System.Windows.Forms.Keys.D1 };
+        var second = new TrackHotkeyBinding { TrackName = "MUSIC", Modifiers = GlobalHotkeyManager.MOD_CONTROL | GlobalHotkeyManager.MOD_ALT, VirtualKey = (int)System.Windows.Forms.Keys.D2 };
+        using (var one = new GlobalHotkeyManager(registry, new IntPtr(1)))
+        using (var two = new GlobalHotkeyManager(registry, new IntPtr(2)))
+        {
+            Check(one.Replace(new[] { first }) == null && registry.Count == 1, "register global hotkey");
+            Check(two.Replace(new[] { first }) != null && registry.Count == 1, "reject global hotkey owned by another app");
+            Check(one.Replace(new TrackHotkeyBinding[0]) == null && registry.Count == 0, "unregister removed global hotkey");
+            Check(two.Replace(new[] { first }) == null && registry.Count == 1, "register hotkey after prior owner releases it");
+            registry.FailVirtualKey = second.VirtualKey;
+            Check(two.Replace(new[] { first, second }) != null && registry.Count == 1, "restore previous hotkey when a new registration fails");
+            Check(two.Replace(new TrackHotkeyBinding[0]) == null && registry.Count == 0, "release all hotkeys on removal");
+        }
     }
 
     private static void TestStartupManager(string root)
@@ -134,5 +204,38 @@ internal static class ReaperTrayHelperTests
             Target = null;
         }
     }
-}
 
+    private sealed class FakeHotkeyRegistry : IHotkeyRegistrar
+    {
+        private readonly Dictionary<string, string> byChord = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> byOwner = new Dictionary<string, string>();
+        internal int FailVirtualKey = -1;
+        internal int Count { get { return byChord.Count; } }
+
+        public bool Register(IntPtr handle, int id, uint modifiers, uint virtualKey, out int errorCode)
+        {
+            string chord = modifiers + ":" + virtualKey;
+            string owner = handle.ToInt64() + ":" + id;
+            if (byChord.ContainsKey(chord) || (int)virtualKey == FailVirtualKey)
+            {
+                errorCode = 1409;
+                return false;
+            }
+            byChord.Add(chord, owner);
+            byOwner.Add(owner, chord);
+            errorCode = 0;
+            return true;
+        }
+
+        public void Unregister(IntPtr handle, int id)
+        {
+            string owner = handle.ToInt64() + ":" + id;
+            string chord;
+            if (byOwner.TryGetValue(owner, out chord))
+            {
+                byOwner.Remove(owner);
+                byChord.Remove(chord);
+            }
+        }
+    }
+}

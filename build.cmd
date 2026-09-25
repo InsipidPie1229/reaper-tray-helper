@@ -15,14 +15,14 @@ set "TESTS=%ROOT%tests"
 if exist "%ARTIFACTS%" rmdir /s /q "%ARTIFACTS%"
 mkdir "%ARTIFACTS%"
 
-"%COMPILER%" /nologo /target:winexe /platform:anycpu /optimize+ /out:"%ARTIFACTS%\ReaperTrayHelper.exe" /reference:System.Windows.Forms.dll /reference:System.Drawing.dll "%SRC%\Program.cs" "%SRC%\AppSettings.cs" "%SRC%\StartupShortcutManager.cs" "%SRC%\ReaperProcessSelector.cs" "%SRC%\ReaperTrayContext.cs"
+"%COMPILER%" /nologo /target:winexe /platform:anycpu /optimize+ /out:"%ARTIFACTS%\ReaperTrayHelper.exe" /reference:System.Windows.Forms.dll /reference:System.Drawing.dll "%SRC%\Program.cs" "%SRC%\AppSettings.cs" "%SRC%\StartupShortcutManager.cs" "%SRC%\ReaperProcessSelector.cs" "%SRC%\ReaperTrayContext.cs" "%SRC%\TrackHotkeys.cs" "%SRC%\ReaperOscBridge.cs"
 if errorlevel 1 exit /b 1
 
-"%COMPILER%" /nologo /target:exe /main:ReaperTrayHelperTests /out:"%ARTIFACTS%\ReaperTrayHelper.Tests.exe" /reference:System.Windows.Forms.dll /reference:System.Drawing.dll "%SRC%\Program.cs" "%SRC%\AppSettings.cs" "%SRC%\StartupShortcutManager.cs" "%SRC%\ReaperProcessSelector.cs" "%SRC%\ReaperTrayContext.cs" "%TESTS%\ReaperTrayHelper.Tests.cs"
+"%COMPILER%" /nologo /target:exe /main:ReaperTrayHelperTests /out:"%ARTIFACTS%\ReaperTrayHelper.Tests.exe" /reference:System.Windows.Forms.dll /reference:System.Drawing.dll "%SRC%\Program.cs" "%SRC%\AppSettings.cs" "%SRC%\StartupShortcutManager.cs" "%SRC%\ReaperProcessSelector.cs" "%SRC%\ReaperTrayContext.cs" "%SRC%\TrackHotkeys.cs" "%SRC%\ReaperOscBridge.cs" "%TESTS%\ReaperTrayHelper.Tests.cs"
 if errorlevel 1 exit /b 1
 
 "%ARTIFACTS%\ReaperTrayHelper.Tests.exe" "%ARTIFACTS%\test-fixtures"
 if errorlevel 1 exit /b 1
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "& '%ROOT%scripts\Package.ps1' -Root '%ROOT%' -Artifacts '%ARTIFACTS%' -Version '1.1.0'"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "& '%ROOT%scripts\Package.ps1' -Root '%ROOT%' -Artifacts '%ARTIFACTS%' -Version '1.1.0-rc.2'"
 exit /b %errorlevel%

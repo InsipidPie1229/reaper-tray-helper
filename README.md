@@ -1,6 +1,6 @@
 # REAPER Tray Helper
 
-REAPER Tray Helper는 별도로 설치된 REAPER를 선택한 프로젝트와 함께 시작하고, 준비가 끝나면 REAPER 창을 시스템 트레이로 숨기는 Windows용 비공식 도우미입니다.
+REAPER Tray Helper는 별도로 설치된 REAPER를 시작하고, 창을 시스템 트레이에 숨기며, 원하는 트랙에 전역 음소거 단축키를 지정하는 Windows용 비공식 도우미입니다.
 
 Cockos 또는 REAPER와 제휴·승인·지원 관계가 아닙니다. REAPER 본체, REAPER 라이선스, 플러그인, 오디오 설정 및 프로젝트 파일은 이 프로그램에 포함되지 않으며, 각 사용자가 별도로 준비해야 합니다.
 
@@ -14,10 +14,17 @@ Cockos 또는 REAPER와 제휴·승인·지원 관계가 아닙니다. REAPER �
 
 ## 설치와 최초 설정
 
-1. Release의 사용자용 ZIP을 삭제하지 않을 폴더에 압축 해제합니다.
+1. Release의 사용자용 ZIP을 삭제하지 않을 폴더에 압축 해제합니다. EXE와 동봉된 `ReaperTrayHelper_ToggleTrackMute.lua`를 같은 폴더에 둡니다.
 2. `ReaperTrayHelper.exe`를 처음 실행합니다.
 3. 설치된 `reaper.exe`를 선택합니다. 자동으로 열 프로젝트가 있다면 `.rpp`도 선택합니다.
 4. Windows 로그인 시 시작하려면 `Windows 로그인 시 REAPER 자동시작`을 체크하고 저장합니다.
+
+전역 음소거 단축키를 처음 설정할 때는 REAPER에서 한 번 연결해야 합니다.
+
+1. REAPER에서 **Options → Preferences → Control/OSC/web → Add**를 열고 OSC 컨트롤 서피스를 추가합니다.
+2. 패턴은 `Default.ReaperOSC`, 장치 IP는 `127.0.0.1`, 장치 포트는 `9001`, 로컬 수신 포트는 도우미 설정의 `REAPER OSC 로컬 수신 포트` 값(기본 `8000`)으로 둡니다.
+3. REAPER Actions 목록을 열고 `ReaScript: Load...`로 동봉 Lua 파일을 불러옵니다. 등록한 스크립트를 우클릭해 **Copy selected action command ID**를 선택하고, 그 ID를 도우미 설정의 `ReaScript 명령 ID`에 붙여 넣습니다.
+4. 도우미 설정의 **OSC 연결 시험**을 눌러 성공을 확인합니다. Actions ID와 OSC 포트 설정은 한 번 저장하면 다음 실행에도 유지됩니다.
 
 설정은 `%LOCALAPPDATA%\ReaperTrayHelper\settings.xml`에 저장됩니다. 자동시작은 현재 Windows 계정의 시작프로그램 바로가기 `REAPER Tray Helper.lnk`로만 등록됩니다.
 
@@ -28,22 +35,27 @@ Cockos 또는 REAPER와 제휴·승인·지원 관계가 아닙니다. REAPER �
 - 아이콘을 우클릭하면 열기·숨기기·설정·도우미 종료 메뉴를 사용합니다.
 - 도우미를 종료하면 숨긴 REAPER 창을 표시하고, REAPER 자체는 종료하지 않습니다.
 - 설정에서 자동시작 체크를 끄고 저장하면 해당 바로가기를 제거합니다.
+- 도우미가 실행 중이면 REAPER가 다른 창 뒤에 있거나 트레이에 숨겨져 있어도 전역 단축키가 작동합니다.
+- 설정에서 단축키를 추가하고 트랙 이름을 정확히 입력한 다음 단축키 입력 칸에서 원하는 조합을 누릅니다. 예: `Ctrl+Alt+D1` → `MIC`, `Ctrl+Alt+D2` → `MUSIC`.
+- 한 단축키는 지정 트랙 하나의 음소거만 토글합니다. 성공하면 트레이 알림에 현재 상태가 표시됩니다.
 
 ## 제한 사항
 
 - REAPER가 이미 실행 중이면 프로젝트를 새로 열거나 기존 창을 숨기지 않고 연결만 합니다.
 - 설정한 REAPER가 두 개 이상 실행 중이거나, 권한 차이 때문에 경로를 확인할 수 없으면 연결하지 않고 안내합니다.
 - 평가판 안내·오류·저장 확인 같은 대화상자는 자동으로 닫거나 숨기지 않습니다.
-- 이 프로그램은 REAPER의 트랙·FX·오디오 장치·오디오 라우팅을 변경하지 않습니다.
+- 트랙 이름은 활성 프로젝트에서 정확히 일치해야 하며, 같은 이름이 여러 개면 아무 트랙도 바꾸지 않고 오류를 알립니다.
+- 단축키는 도우미가 실행 중일 때만 작동합니다. Windows나 다른 앱이 이미 사용 중인 조합은 저장할 수 없습니다.
+- 이 프로그램은 REAPER 트랙의 음소거만 제어합니다. REAPER 바깥으로 직접 전달되는 마이크 신호나 오디오 라우팅은 제어하지 않습니다.
 - 창을 숨겨도 REAPER 오디오 처리는 계속될 수 있습니다.
 
 ## 제거
 
-도우미 설정에서 자동시작 체크를 끄고 저장한 뒤, 트레이 메뉴에서 도우미를 종료합니다. 그 다음 압축 해제 폴더와 `%LOCALAPPDATA%\ReaperTrayHelper` 폴더를 삭제하면 됩니다.
+도우미 설정에서 전역 단축키를 삭제하고 자동시작 체크를 끈 뒤 저장합니다. REAPER Preferences에서 도우미 OSC 컨트롤 서피스를 제거하고 Actions 목록에서 도우미 ReaScript를 지웁니다. 트레이 메뉴에서 도우미를 종료한 다음 압축 해제 폴더와 `%LOCALAPPDATA%\ReaperTrayHelper` 폴더를 삭제하면 됩니다.
 
 ## 소스 빌드와 검증
 
-Windows에서 `build.cmd`를 실행하면 `artifacts` 폴더에 실행 파일, 사용자용 ZIP, 소스 ZIP, SHA-256 목록이 생성됩니다. 빌드 과정은 설정 파일·경로 검증·자동시작 바로가기 처리·REAPER 프로세스 선택을 자동 검사합니다.
+Windows에서 `build.cmd`를 실행하면 `artifacts` 폴더에 실행 파일, Lua 스크립트가 포함된 사용자용 ZIP, 소스 ZIP, SHA-256 목록이 생성됩니다. 빌드 과정은 설정 파일·전역 단축키 검증·OSC 메시지 형식·자동시작 바로가기 처리·REAPER 프로세스 선택을 자동 검사합니다.
 
 현재 릴리스 후보의 로컬 검사 근거와 다른 Windows PC에서 수행할 필수 검증은 [TESTING.md](TESTING.md)를 참고하세요. 다른 PC의 로그인 자동시작·트레이 숨김/복원·자동시작 해제 검증과 보안 경고 확인이 끝나기 전에는 정식 공개 Release를 만들지 않습니다.
 

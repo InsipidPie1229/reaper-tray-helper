@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
@@ -12,6 +13,9 @@ namespace ReaperTrayHelper
         public string ReaperPath { get; set; }
         public string ProjectPath { get; set; }
         public bool StartWithWindows { get; set; }
+        public int ReaperOscPort { get; set; }
+        public string ReaperScriptCommandId { get; set; }
+        public List<TrackHotkeyBinding> TrackHotkeys { get; set; }
 
         public static string SettingsFile
         {
@@ -46,6 +50,16 @@ namespace ReaperTrayHelper
                  !String.Equals(Path.GetExtension(ProjectPath), ".rpp", StringComparison.OrdinalIgnoreCase)))
             {
                 return "사용할 .rpp 프로젝트를 선택하거나 프로젝트 칸을 비워 두세요.";
+            }
+
+            string hotkeyError = TrackHotkeyBinding.ValidationError(TrackHotkeys);
+            if (hotkeyError != null) return hotkeyError;
+            if (TrackHotkeys != null && TrackHotkeys.Count > 0)
+            {
+                if (ReaperOscPort < 1024 || ReaperOscPort > 65535)
+                    return "REAPER OSC 수신 포트는 1024~65535 사이여야 합니다.";
+                if (!ReaperOscBridge.IsValidCommandId(ReaperScriptCommandId))
+                    return "트랙 단축키를 사용하려면 ReaScript 명령 ID를 입력하세요.";
             }
 
             return null;
@@ -87,7 +101,7 @@ namespace ReaperTrayHelper
             }
         }
 
-        internal static AppSettings LoadOrConfigure(StartupShortcutManager startup, string executablePath)
+        internal static AppSettings LoadOrConfigure(StartupShortcutManager startup, string executablePath, GlobalHotkeyManager hotkeys = null)
         {
             AppSettings settings = null;
             if (File.Exists(SettingsFile))
@@ -109,7 +123,12 @@ namespace ReaperTrayHelper
             if (settings != null && settings.ValidationError() == null)
             {
                 settings.StartWithWindows = startup.IsEnabled(executablePath);
-                return settings;
+                if (hotkeys == null || hotkeys.Replace(settings.TrackHotkeys) == null) return settings;
+                MessageBox.Show(
+                    "저장된 전역 단축키를 등록하지 못했습니다. 설정을 열어 충돌하는 키를 수정하세요.",
+                    Program.ApplicationName,
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
             }
 
             settings = settings ?? new AppSettings();
@@ -119,15 +138,15 @@ namespace ReaperTrayHelper
             }
 
             settings.StartWithWindows = startup.IsEnabled(executablePath);
-            return Configure(settings, startup, executablePath);
+            return Configure(settings, startup, executablePath, hotkeys);
         }
 
-        internal static AppSettings Configure(AppSettings current, StartupShortcutManager startup, string executablePath)
+        internal static AppSettings Configure(AppSettings current, StartupShortcutManager startup, string executablePath, GlobalHotkeyManager hotkeys = null)
         {
             using (var form = new Form())
             {
                 form.Text = "REAPER 자동시작 도우미 설정";
-                form.ClientSize = new System.Drawing.Size(635, 295);
+                form.ClientSize = new System.Drawing.Size(760, 570);
                 form.FormBorderStyle = FormBorderStyle.FixedDialog;
                 form.StartPosition = FormStartPosition.CenterScreen;
                 form.MaximizeBox = false;
@@ -153,14 +172,111 @@ namespace ReaperTrayHelper
                     Height = 42,
                     Text = "자동시작은 현재 Windows 계정의 시작프로그램 바로가기로 등록됩니다.\n프로젝트 경로를 비워 두면 REAPER의 기존 시작 설정을 사용합니다."
                 };
-                var save = new Button { Left = 425, Top = 247, Width = 90, Text = "저장" };
-                var cancel = new Button { Left = 525, Top = 247, Width = 90, Text = "취소", DialogResult = DialogResult.Cancel };
+                var hotkeyLabel = new Label { Left = 20, Top = 238, Width = 500, Text = "트랙별 전역 음소거 단축키 (현재 활성 REAPER 프로젝트)" };
+                var hotkeyList = new ListView
+                {
+                    Left = 20,
+                    Top = 260,
+                    Width = 520,
+                    Height = 170,
+                    View = View.Details,
+                    FullRowSelect = true,
+                    GridLines = true,
+                    MultiSelect = false
+                };
+                hotkeyList.Columns.Add("트랙 이름", 320);
+                hotkeyList.Columns.Add("단축키", 170);
+                var hotkeyAdd = new Button { Left = 550, Top = 260, Width = 190, Text = "추가" };
+                var hotkeyEdit = new Button { Left = 550, Top = 296, Width = 190, Text = "수정" };
+                var hotkeyDelete = new Button { Left = 550, Top = 332, Width = 190, Text = "삭제" };
+                var oscPort = new NumericUpDown { Left = 550, Top = 405, Width = 90, Minimum = 1024, Maximum = 65535, Value = current.ReaperOscPort >= 1024 && current.ReaperOscPort <= 65535 ? current.ReaperOscPort : 8000 };
+                var commandId = new TextBox { Left = 20, Top = 486, Width = 520, Text = current.ReaperScriptCommandId ?? "" };
+                var connectionTest = new Button { Left = 550, Top = 484, Width = 190, Text = "OSC 연결 시험" };
+                var setupNote = new Label
+                {
+                    Left = 20,
+                    Top = 386,
+                    Width = 720,
+                    Height = 20,
+                    Text = "REAPER OSC 로컬 수신 포트 (Default.ReaperOSC, 장치 IP 127.0.0.1, 장치 포트 9001)"
+                };
+                var guideNote = new Label
+                {
+                    Left = 20,
+                    Top = 438,
+                    Width = 720,
+                    Height = 24,
+                    Text = "Actions에서 동봉 Lua 스크립트를 불러온 뒤 명령 ID를 복사해 입력하세요."
+                };
+                var commandLabel = new Label { Left = 20, Top = 464, Width = 520, Text = "ReaScript 명령 ID" };
+                var save = new Button { Left = 550, Top = 535, Width = 90, Text = "저장" };
+                var cancel = new Button { Left = 650, Top = 535, Width = 90, Text = "취소", DialogResult = DialogResult.Cancel };
 
                 form.Controls.Add(new Label { Left = 20, Top = 18, Width = 560, Text = "REAPER 실행 파일 (reaper.exe)" });
                 form.Controls.Add(new Label { Left = 20, Top = 88, Width = 560, Text = "시작할 프로젝트 (.rpp) — 선택 사항" });
-                form.Controls.AddRange(new Control[] { reaperPath, projectPath, reaperBrowse, projectBrowse, startupCheck, note, save, cancel });
+                form.Controls.AddRange(new Control[] { reaperPath, projectPath, reaperBrowse, projectBrowse, startupCheck, note, hotkeyLabel, hotkeyList, hotkeyAdd, hotkeyEdit, hotkeyDelete, oscPort, setupNote, commandLabel, commandId, connectionTest, guideNote, save, cancel });
                 form.AcceptButton = save;
                 form.CancelButton = cancel;
+
+                var bindings = current.TrackHotkeys == null
+                    ? new List<TrackHotkeyBinding>()
+                    : new List<TrackHotkeyBinding>(current.TrackHotkeys);
+                Action refreshBindings = delegate
+                {
+                    hotkeyList.Items.Clear();
+                    foreach (TrackHotkeyBinding binding in bindings)
+                    {
+                        var item = new ListViewItem(binding.TrackName);
+                        item.SubItems.Add(binding.DisplayShortcut);
+                        hotkeyList.Items.Add(item);
+                    }
+                };
+                refreshBindings();
+
+                hotkeyAdd.Click += delegate
+                {
+                    TrackHotkeyBinding binding = TrackHotkeyDialog.Edit(form, null);
+                    if (binding != null)
+                    {
+                        bindings.Add(binding);
+                        refreshBindings();
+                    }
+                };
+                hotkeyEdit.Click += delegate
+                {
+                    if (hotkeyList.SelectedIndices.Count == 0) return;
+                    int index = hotkeyList.SelectedIndices[0];
+                    TrackHotkeyBinding binding = TrackHotkeyDialog.Edit(form, bindings[index]);
+                    if (binding != null)
+                    {
+                        bindings[index] = binding;
+                        refreshBindings();
+                    }
+                };
+                hotkeyDelete.Click += delegate
+                {
+                    if (hotkeyList.SelectedIndices.Count == 0) return;
+                    bindings.RemoveAt(hotkeyList.SelectedIndices[0]);
+                    refreshBindings();
+                };
+                connectionTest.Click += delegate
+                {
+                    string id = commandId.Text.Trim();
+                    if (!ReaperOscBridge.IsValidCommandId(id))
+                    {
+                        MessageBox.Show(form, "Actions 목록에서 복사한 ReaScript 명령 ID를 입력하세요.", Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        return;
+                    }
+                    try
+                    {
+                        ReaperOscBridge.Test((int)oscPort.Value, id);
+                        MessageBox.Show(form, "REAPER Lua 스크립트와 연결되었습니다.", Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(form, "연결하지 못했습니다. REAPER OSC 포트와 ReaScript 명령 ID를 확인하세요.\n\n" + ex.Message, Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                };
 
                 reaperBrowse.Click += delegate
                 {
@@ -191,7 +307,10 @@ namespace ReaperTrayHelper
                     {
                         ReaperPath = reaperPath.Text.Trim().Trim('\"'),
                         ProjectPath = projectPath.Text.Trim().Trim('\"'),
-                        StartWithWindows = startupCheck.Checked
+                        StartWithWindows = startupCheck.Checked,
+                        ReaperOscPort = (int)oscPort.Value,
+                        ReaperScriptCommandId = commandId.Text.Trim(),
+                        TrackHotkeys = bindings
                     };
 
                     string error = candidate.ValidationError();
@@ -203,6 +322,16 @@ namespace ReaperTrayHelper
 
                     try
                     {
+                        if (hotkeys != null)
+                        {
+                            string hotkeyError = hotkeys.Replace(candidate.TrackHotkeys);
+                            if (hotkeyError != null)
+                            {
+                                MessageBox.Show(form, hotkeyError, Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                return;
+                            }
+                        }
+
                         startup.SetEnabled(candidate.StartWithWindows, executablePath);
                         candidate.StartWithWindows = startup.IsEnabled(executablePath);
                         if (candidate.StartWithWindows != startupCheck.Checked)
@@ -214,6 +343,7 @@ namespace ReaperTrayHelper
                     }
                     catch (Exception ex)
                     {
+                        if (hotkeys != null) hotkeys.Replace(current.TrackHotkeys);
                         MessageBox.Show(
                             form,
                             "설정을 저장하지 못했습니다.\n\n" + ex.Message,

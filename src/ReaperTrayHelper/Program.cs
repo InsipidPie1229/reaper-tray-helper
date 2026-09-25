@@ -29,13 +29,13 @@ namespace ReaperTrayHelper
                 try
                 {
                     var startup = StartupShortcutManager.CreateDefault();
-                    AppSettings settings = AppSettings.LoadOrConfigure(startup, ExecutablePath);
-                    if (settings == null)
+                    using (var hotkeys = new GlobalHotkeyManager())
                     {
-                        return;
-                    }
+                        AppSettings settings = AppSettings.LoadOrConfigure(startup, ExecutablePath, hotkeys);
+                        if (settings == null) return;
 
-                    Application.Run(new ReaperTrayContext(settings, startup, ExecutablePath));
+                        Application.Run(new ReaperTrayContext(settings, startup, ExecutablePath, hotkeys));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -49,4 +49,3 @@ namespace ReaperTrayHelper
         }
     }
 }
-

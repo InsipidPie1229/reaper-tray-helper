@@ -21,6 +21,7 @@ namespace ReaperTrayHelper
         private readonly string helperPath;
         private readonly NotifyIcon trayIcon;
         private readonly Timer monitorTimer;
+        private readonly GlobalHotkeyManager hotkeys;
         private readonly HashSet<IntPtr> hiddenWindows = new HashSet<IntPtr>();
         private readonly Icon applicationIcon;
         private readonly IntPtr applicationIconHandle;
@@ -62,7 +63,7 @@ namespace ReaperTrayHelper
 
         private delegate bool EnumWindowsProc(IntPtr handle, IntPtr lParam);
 
-        internal ReaperTrayContext(AppSettings settings, StartupShortcutManager startup, string helperPath)
+        internal ReaperTrayContext(AppSettings settings, StartupShortcutManager startup, string helperPath, GlobalHotkeyManager hotkeys)
         {
             this.settings = settings;
             reaperPath = settings.ReaperPath;
@@ -87,6 +88,9 @@ namespace ReaperTrayHelper
                 Visible = true
             };
             trayIcon.DoubleClick += delegate { ToggleReaper(); };
+
+            this.hotkeys = hotkeys;
+            hotkeys.Pressed += OnTrackHotkeyPressed;
 
             reaperProcess = FindOrStartReaper();
             if (reaperProcess == null)
@@ -252,11 +256,53 @@ namespace ReaperTrayHelper
 
         private void OpenSettings()
         {
-            AppSettings updated = AppSettings.Configure(settings, startup, helperPath);
+            AppSettings updated = AppSettings.Configure(settings, startup, helperPath, hotkeys);
             if (updated != null)
             {
                 settings = updated;
             }
+        }
+
+        private void OnTrackHotkeyPressed(TrackHotkeyBinding binding)
+        {
+            if (!ReaperOscBridge.IsValidCommandId(settings.ReaperScriptCommandId))
+            {
+                ShowHotkeyError("REAPER Lua 스크립트 명령 ID와 OSC 연결을 먼저 설정하세요.");
+                return;
+            }
+
+            try
+            {
+                ReaperOscResult result = ReaperOscBridge.ToggleTrack(settings.ReaperOscPort, settings.ReaperScriptCommandId, binding.TrackName);
+                string message;
+                switch (result.Code)
+                {
+                    case "MUTED": message = binding.TrackName + " 트랙 음소거"; break;
+                    case "UNMUTED": message = binding.TrackName + " 트랙 음소거 해제"; break;
+                    case "NO_PROJECT": message = "활성 REAPER 프로젝트가 없습니다."; break;
+                    case "NO_TRACK": message = "현재 프로젝트에서 '" + binding.TrackName + "' 트랙을 찾지 못했습니다."; break;
+                    case "DUPLICATE_TRACK": message = "현재 프로젝트에 '" + binding.TrackName + "' 이름의 트랙이 여러 개 있습니다. 이름을 고유하게 바꾸세요."; break;
+                    case "TIMEOUT": message = "REAPER가 응답하지 않았습니다. REAPER OSC 포트와 스크립트 명령 ID를 확인하세요."; break;
+                    default: message = "REAPER 트랙을 전환하지 못했습니다. (" + result.Code + ")"; break;
+                }
+                ShowHotkeyNotice(message, result.Code == "MUTED" || result.Code == "UNMUTED" ? 1500 : 3500);
+            }
+            catch (Exception ex)
+            {
+                ShowHotkeyError("REAPER 음소거 단축키 오류: " + ex.Message);
+            }
+        }
+
+        private void ShowHotkeyError(string message)
+        {
+            ShowHotkeyNotice(message, 3500);
+        }
+
+        private void ShowHotkeyNotice(string message, int duration)
+        {
+            trayIcon.BalloonTipTitle = Program.ApplicationName;
+            trayIcon.BalloonTipText = message;
+            trayIcon.ShowBalloonTip(duration);
         }
 
         private void ShowReaper()
@@ -312,6 +358,7 @@ namespace ReaperTrayHelper
                 trayIcon.Visible = false;
                 trayIcon.Dispose();
             }
+            if (hotkeys != null) hotkeys.Dispose();
             ExitThread();
         }
 
@@ -323,6 +370,7 @@ namespace ReaperTrayHelper
                 {
                     monitorTimer.Dispose();
                 }
+                if (hotkeys != null) hotkeys.Dispose();
                 if (applicationIcon != null)
                 {
                     applicationIcon.Dispose();
