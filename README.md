@@ -4,6 +4,10 @@ REAPER Tray Helper is an unofficial Windows companion for launching REAPER, hidi
 
 This project is independent of Cockos and is not approved, endorsed, or supported by Cockos or REAPER. The REAPER application, its license, plug-ins, settings, and project files are not included. Install REAPER separately and use it under its own license.
 
+## Download
+
+The public GitHub release is available without a GitHub account. [Open the latest release page](https://github.com/InsipidPie1229/reaper-tray-helper/releases) and download the user ZIP ending in `.zip` (not `-Source.zip`) under **Assets**. The current build is a public release candidate, not a stable release. Extract the ZIP before running the EXE. See [README.ko.md](README.ko.md) for Korean instructions.
+
 ## Features
 
 - Start REAPER and optionally open a selected project.
@@ -104,7 +108,7 @@ In Settings, delete all track shortcuts, clear the auto-start option, and save. 
 
 ## Build and verification
 
-On Windows, run `build.cmd` to compile the helper, run automated checks, create the user and source ZIPs, and write SHA-256 checksums under `artifacts`. See [TESTING.md](TESTING.md) for test details and the remaining external-PC checks.
+On Windows, run `build.cmd` to compile the helper, run automated checks, create the user and source ZIPs, and write SHA-256 checksums under `artifacts`. See [TESTING.md](TESTING.md) for the current verification status.
 
 ## License and trademarks
 

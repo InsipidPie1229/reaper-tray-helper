@@ -4,6 +4,10 @@ REAPER Tray Helper는 별도로 설치된 REAPER를 시작하고, 창을 시스�
 
 Cockos 또는 REAPER와 제휴·승인·지원 관계가 아닙니다. REAPER 본체, REAPER 라이선스, 플러그인, 오디오 설정 및 프로젝트 파일은 이 프로그램에 포함되지 않으며, 각 사용자가 별도로 준비해야 합니다.
 
+## 다운로드
+
+GitHub 계정이 없어도 [공개 릴리스 페이지](https://github.com/InsipidPie1229/reaper-tray-helper/releases)에서 받을 수 있습니다. 최신 릴리스의 **Assets**에서 `-Source.zip`이 붙지 않은 사용자용 ZIP을 다운로드하세요. 현재 파일은 공개된 사전 릴리스이며 정식 안정 버전은 아닙니다. ZIP을 먼저 압축 해제한 뒤 EXE를 실행하세요. 영어 안내는 [README.md](README.md)를 참고하세요.
+
 ## 지원 환경
 
 - Windows 10/11 x64
@@ -111,4 +115,4 @@ REAPER와 Cockos는 각 권리자의 상표입니다. 이 프로젝트는 Cockos
 
 Windows에서 `build.cmd`를 실행하면 `artifacts` 폴더에 실행 파일, Lua 스크립트가 포함된 사용자용 ZIP, 소스 ZIP, SHA-256 목록이 생성됩니다. 빌드 과정은 설정 파일·전역 단축키 검증·OSC 메시지 형식·자동시작 바로가기 처리·REAPER 프로세스 선택을 자동 검사합니다.
 
-현재 릴리스 후보의 로컬 검사 근거와 다른 Windows PC에서 수행할 필수 검증은 [TESTING.md](TESTING.md)를 참고하세요. 다른 PC의 로그인 자동시작·트레이 숨김/복원·자동시작 해제 검증과 보안 경고 확인이 끝나기 전에는 정식 공개 Release를 만들지 않습니다.
+현재 릴리스 후보의 자동 검사 근거와 외부 Windows PC 검증 상태는 [TESTING.md](TESTING.md)를 참고하세요. 다른 Windows PC에서 안정적으로 사용했고 이전 Chrome 경고가 더 이상 나타나지 않았다는 사용자 보고를 반영했습니다. 다만 경고의 당시 문구와 다운로드한 파일 해시는 기록되지 않아, 현재 릴리스는 사전 릴리스로 표시합니다.
