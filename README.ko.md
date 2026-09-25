@@ -6,7 +6,7 @@ Cockos 또는 REAPER와 제휴·승인·지원 관계가 아닙니다. REAPER �
 
 ## 다운로드
 
-GitHub 계정이 없어도 [공개 릴리스 페이지](https://github.com/InsipidPie1229/reaper-tray-helper/releases)에서 받을 수 있습니다. **Assets**에서 `ReaperTrayHelper-1.2.0.zip`을 다운로드하세요. `-Source.zip`은 소스 코드용입니다. ZIP을 압축 해제한 뒤 EXE를 실행하세요. 영어 안내는 [README.md](README.md)를 참고하세요.
+GitHub 계정이 없어도 [공개 릴리스 페이지](https://github.com/InsipidPie1229/reaper-tray-helper/releases)에서 받을 수 있습니다. **Assets**에서 `ReaperTrayHelper-1.2.0-rc.1.zip`을 다운로드하세요. `-Source.zip`은 소스 코드용입니다. ZIP을 압축 해제한 뒤 EXE를 실행하세요. 영어 안내는 [README.md](README.md)를 참고하세요.
 
 ## 지원 환경
 
