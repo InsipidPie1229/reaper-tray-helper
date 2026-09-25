@@ -6,7 +6,7 @@ This project is independent of Cockos and is not approved, endorsed, or supporte
 
 ## Download
 
-The public GitHub release is available without a GitHub account. [Open the latest release page](https://github.com/InsipidPie1229/reaper-tray-helper/releases) and download `ReaperTrayHelper-1.2.0.zip` under **Assets**. Do not download `-Source.zip` unless you want the source code. Extract the ZIP before running the EXE. See [README.ko.md](README.ko.md) for Korean instructions.
+The public GitHub release is available without a GitHub account. [Open the latest release page](https://github.com/InsipidPie1229/reaper-tray-helper/releases) and download `ReaperTrayHelper-1.2.0-rc.1.zip` under **Assets**. Do not download `-Source.zip` unless you want the source code. Extract the ZIP before running the EXE. See [README.ko.md](README.ko.md) for Korean instructions.
 
 ## Features
 
