@@ -14,7 +14,7 @@ GitHub 계정이 없어도 [공개 릴리스 페이지](https://github.com/Insip
 - .NET Framework 4.8 또는 호환되는 Windows .NET Framework 4.x 런타임
 - 별도로 설치한 REAPER
 
-이 배포본은 코드 서명되지 않았습니다. 다운로드·실행 전 배포 페이지의 SHA-256 값과 파일을 확인하세요. 체크섬은 파일 동일성을 확인하는 수단이며, 보안 제품의 판정을 대체하지 않습니다.
+이 배포본은 코드 서명되지 않았습니다. Discord DM으로 파일을 공유했을 때 경고가 있었지만, 이후 GitHub Release에서 받은 파일은 경고 없이 다운로드됐다는 보고가 있습니다. 다운로드 경로 또는 파일 평판이 영향을 줬을 가능성과 맞지만, 당시 경고 문구와 비교한 파일 해시가 없어 원인을 확정할 수는 없습니다. Chrome은 위험한 파일뿐 아니라 낯설거나 드문 파일도 경고할 수 있고 ([Chrome 도움말](https://support.google.com/chrome/answer/6261569)), Windows SmartScreen도 앱 평판을 확인합니다 ([Microsoft 지원](https://support.microsoft.com/en-us/office/protect-my-pc-from-viruses)). 악성코드 경고를 무시하지 마세요. SHA-256은 파일이 배포본과 같은지 확인할 뿐 안전성을 증명하지 않습니다.
 
 ## 설치와 최초 설정
 

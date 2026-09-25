@@ -21,7 +21,7 @@ The public GitHub release is available without a GitHub account. [Open the lates
 - .NET Framework 4.8 or a compatible .NET Framework 4.x runtime
 - A separate REAPER installation
 
-This release is not code-signed. The published SHA-256 file can confirm that a download matches the release asset; it does not prove that a file is safe or override a security product's warning.
+This release is not code-signed. A warning was reported when the file was shared through a Discord DM; a later download from the GitHub Release reportedly completed without a warning. That difference is consistent with a download-source or file-reputation warning, but the original warning text and tested file hash were not saved, so its cause is not confirmed. Chrome may flag both dangerous and uncommon or unfamiliar downloads ([Chrome Help](https://support.google.com/chrome/answer/6261569)); Windows SmartScreen also uses app reputation ([Microsoft Support](https://support.microsoft.com/en-us/office/protect-my-pc-from-viruses)). Do not ignore a malware warning. SHA-256 confirms file identity only; it does not prove safety.
 
 ## Install and configure
 
