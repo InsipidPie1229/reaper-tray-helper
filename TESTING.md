@@ -1,10 +1,10 @@
-# v1.2.0-rc.1 release-candidate verification
+# v1.2.0 release verification
 
 ## External availability and user report
 
-The repository and `v1.2.0-rc.1` release are public; anyone can view and download the assets without a GitHub account. The release remains marked as a prerelease.
+The repository and release are public; anyone can view and download the assets without a GitHub account.
 
-The user reports that the helper worked stably on a separate Windows PC. They later clarified that the earlier warning appeared while sharing through a Discord DM, while a download from the GitHub Release completed without a warning. This difference is consistent with download-source or file-reputation effects: Chrome can warn about malware as well as uncommon or unfamiliar downloads, and Windows SmartScreen considers app reputation. It does not prove that Discord caused the warning or that the warning was only a reputation notice. The Windows and REAPER versions, exact ZIP SHA-256 used for the test, detailed checklist results, and original warning text were not recorded. Treat this as a positive user report, not a reproducible test record or a security scan. The current files are unsigned.
+The user reports that the helper worked stably on a separate Windows PC. The earlier Chrome warning appeared while sharing through a Discord DM; the user later downloaded the GitHub Release successfully and reports that the warning no longer appears. Record the issue as resolved for the GitHub download route. The original warning text, tested ZIP SHA-256, Windows and REAPER versions, and detailed test results were not recorded, so do not claim the cause was conclusively identified or that this exact package received a security scan. Chrome may flag malware as well as uncommon or unfamiliar downloads; Windows SmartScreen also considers app reputation. The current files are unsigned.
 
 ## Local automated checks
 
@@ -19,7 +19,7 @@ The current candidate passed 46 automated checks covering:
 - OSC action packet and ReaScript command ID validation; and
 - REAPER launch/attach selection, multiple process rejection, and unreadable process paths.
 
-The previous `v1.1.0-rc.2` EXE and ZIPs were scanned with Windows Defender on 2026-09-25 and reported no threat at that time. That scan does not cover this `v1.2.0-rc.1` candidate. The Defender engine/signature version and original Chrome warning text remain unverified. The user says the GitHub download no longer triggers the warning, but no new security scan or vendor classification is available. Do not describe these files as security-scanned or as certified safe. This is not a safety guarantee.
+The previous `v1.1.0-rc.2` EXE and ZIPs were scanned with Windows Defender on 2026-09-25 and reported no threat at that time. That scan does not cover this release. The Defender engine/signature version and original Chrome warning text remain unverified. Do not describe these files as security-scanned or as certified safe. This is not a safety guarantee.
 
 ## Package review
 
@@ -42,6 +42,6 @@ Run this checklist on a different Windows 10 or Windows 11 x64 PC using the exac
 9. Disable automatic start and confirm only `REAPER Tray Helper.lnk` is removed. Test an invalid REAPER path, missing project, an already-running REAPER, and multiple REAPER processes.
 10. Record Windows and REAPER versions, ZIP SHA-256, any exact browser/antivirus warning and its product, and pass/fail for each step.
 
-## Stable-release status
+## Release status
 
-Keep this candidate marked as a prerelease until a release-grade record identifies the exact tested asset by SHA-256, records the Windows/REAPER versions and key checklist results, and captures enough information about the original Chrome warning to establish whether it was a reputation warning or a malware detection. The different outcome between Discord DM and GitHub Release makes a download-source or reputation issue plausible, but is not enough to classify the original warning. If a malware detection is reported, pause stable publication and use the detecting vendor's official review process. Do not bypass warnings by disabling security tools, password-protecting archives, renaming extensions, or disguising files.
+The user reports stable use on another Windows PC and successful download from GitHub with no recurring Chrome warning; this report is the basis for the v1.2.0 release. The original Chrome warning was not captured, so its trigger cannot be conclusively classified. If a malware detection is reported in the future, pause distribution and use the detecting vendor's official review process. Do not bypass warnings by disabling security tools, password-protecting archives, renaming extensions, or disguising files.

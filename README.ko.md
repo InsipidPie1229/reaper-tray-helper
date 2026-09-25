@@ -6,7 +6,7 @@ Cockos 또는 REAPER와 제휴·승인·지원 관계가 아닙니다. REAPER �
 
 ## 다운로드
 
-GitHub 계정이 없어도 [공개 릴리스 페이지](https://github.com/InsipidPie1229/reaper-tray-helper/releases)에서 받을 수 있습니다. 최신 릴리스의 **Assets**에서 `-Source.zip`이 붙지 않은 사용자용 ZIP을 다운로드하세요. 현재 파일은 공개된 사전 릴리스이며 정식 안정 버전은 아닙니다. ZIP을 먼저 압축 해제한 뒤 EXE를 실행하세요. 영어 안내는 [README.md](README.md)를 참고하세요.
+GitHub 계정이 없어도 [공개 릴리스 페이지](https://github.com/InsipidPie1229/reaper-tray-helper/releases)에서 받을 수 있습니다. **Assets**에서 `ReaperTrayHelper-1.2.0.zip`을 다운로드하세요. `-Source.zip`은 소스 코드용입니다. ZIP을 압축 해제한 뒤 EXE를 실행하세요. 영어 안내는 [README.md](README.md)를 참고하세요.
 
 ## 지원 환경
 
@@ -14,7 +14,7 @@ GitHub 계정이 없어도 [공개 릴리스 페이지](https://github.com/Insip
 - .NET Framework 4.8 또는 호환되는 Windows .NET Framework 4.x 런타임
 - 별도로 설치한 REAPER
 
-이 배포본은 코드 서명되지 않았습니다. Discord DM으로 파일을 공유했을 때 경고가 있었지만, 이후 GitHub Release에서 받은 파일은 경고 없이 다운로드됐다는 보고가 있습니다. 다운로드 경로 또는 파일 평판이 영향을 줬을 가능성과 맞지만, 당시 경고 문구와 비교한 파일 해시가 없어 원인을 확정할 수는 없습니다. Chrome은 위험한 파일뿐 아니라 낯설거나 드문 파일도 경고할 수 있고 ([Chrome 도움말](https://support.google.com/chrome/answer/6261569)), Windows SmartScreen도 앱 평판을 확인합니다 ([Microsoft 지원](https://support.microsoft.com/en-us/office/protect-my-pc-from-viruses)). 악성코드 경고를 무시하지 마세요. SHA-256은 파일이 배포본과 같은지 확인할 뿐 안전성을 증명하지 않습니다.
+이 배포본은 코드 서명되지 않았습니다. 사용자는 Discord DM으로 파일을 공유했을 때 Chrome 경고를 봤지만, GitHub Release에서 다운로드할 때는 정상적으로 진행됐고 현재 경고가 더 이상 나타나지 않는다고 확인했습니다. GitHub 다운로드 경로에서는 문제가 해결된 것으로 기록합니다. 다만 당시 경고 문구와 시험한 파일 해시가 없어 최초 원인까지 확정할 수는 없습니다. Chrome은 위험한 파일과 낯설거나 드문 파일 모두 경고할 수 있고 ([Chrome 도움말](https://support.google.com/chrome/answer/6261569)), Windows SmartScreen도 앱 평판을 확인합니다 ([Microsoft 지원](https://support.microsoft.com/en-us/office/protect-my-pc-from-viruses)). 이후 악성코드 경고가 나오면 무시하지 마세요. SHA-256은 파일이 배포본과 같은지 확인할 뿐 안전성을 증명하지 않습니다.
 
 ## 설치와 최초 설정
 
@@ -115,4 +115,4 @@ REAPER와 Cockos는 각 권리자의 상표입니다. 이 프로젝트는 Cockos
 
 Windows에서 `build.cmd`를 실행하면 `artifacts` 폴더에 실행 파일, Lua 스크립트가 포함된 사용자용 ZIP, 소스 ZIP, SHA-256 목록이 생성됩니다. 빌드 과정은 설정 파일·전역 단축키 검증·OSC 메시지 형식·자동시작 바로가기 처리·REAPER 프로세스 선택을 자동 검사합니다.
 
-현재 릴리스 후보의 자동 검사 근거와 외부 Windows PC 검증 상태는 [TESTING.md](TESTING.md)를 참고하세요. 다른 Windows PC에서 안정적으로 사용했고 이전 Chrome 경고가 더 이상 나타나지 않았다는 사용자 보고를 반영했습니다. 다만 경고의 당시 문구와 다운로드한 파일 해시는 기록되지 않아, 현재 릴리스는 사전 릴리스로 표시합니다.
+자동 검사 근거와 다른 Windows PC 사용 보고는 [TESTING.md](TESTING.md)를 참고하세요. 사용자는 GitHub Release에서 파일을 문제없이 다운로드했고, 별도 Windows PC에서도 안정적으로 사용했다고 보고했습니다.

@@ -6,7 +6,7 @@ This project is independent of Cockos and is not approved, endorsed, or supporte
 
 ## Download
 
-The public GitHub release is available without a GitHub account. [Open the latest release page](https://github.com/InsipidPie1229/reaper-tray-helper/releases) and download the user ZIP ending in `.zip` (not `-Source.zip`) under **Assets**. The current build is a public release candidate, not a stable release. Extract the ZIP before running the EXE. See [README.ko.md](README.ko.md) for Korean instructions.
+The public GitHub release is available without a GitHub account. [Open the latest release page](https://github.com/InsipidPie1229/reaper-tray-helper/releases) and download `ReaperTrayHelper-1.2.0.zip` under **Assets**. Do not download `-Source.zip` unless you want the source code. Extract the ZIP before running the EXE. See [README.ko.md](README.ko.md) for Korean instructions.
 
 ## Features
 
@@ -21,7 +21,7 @@ The public GitHub release is available without a GitHub account. [Open the lates
 - .NET Framework 4.8 or a compatible .NET Framework 4.x runtime
 - A separate REAPER installation
 
-This release is not code-signed. A warning was reported when the file was shared through a Discord DM; a later download from the GitHub Release reportedly completed without a warning. That difference is consistent with a download-source or file-reputation warning, but the original warning text and tested file hash were not saved, so its cause is not confirmed. Chrome may flag both dangerous and uncommon or unfamiliar downloads ([Chrome Help](https://support.google.com/chrome/answer/6261569)); Windows SmartScreen also uses app reputation ([Microsoft Support](https://support.microsoft.com/en-us/office/protect-my-pc-from-viruses)). Do not ignore a malware warning. SHA-256 confirms file identity only; it does not prove safety.
+This release is not code-signed. The user reports that Chrome showed a warning when the file was shared through a Discord DM, while downloading from the GitHub Release worked normally and the warning is no longer appearing. This supports treating the issue as resolved for the GitHub download route; it does not prove what triggered the original warning because its exact text and the tested file hash were not saved. Chrome can warn about dangerous files as well as uncommon or unfamiliar downloads ([Chrome Help](https://support.google.com/chrome/answer/6261569)); Windows SmartScreen also considers app reputation ([Microsoft Support](https://support.microsoft.com/en-us/office/protect-my-pc-from-viruses)). Do not ignore a future malware warning. SHA-256 confirms file identity only; it does not prove safety.
 
 ## Install and configure
 

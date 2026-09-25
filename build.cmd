@@ -10,6 +10,8 @@ if not exist "%COMPILER%" (
 
 set "ROOT=%~dp0"
 set "ARTIFACTS=%ROOT%artifacts"
+set "VERSION=%~1"
+if "%VERSION%"=="" set "VERSION=1.2.0"
 set "SRC=%ROOT%src\ReaperTrayHelper"
 set "TESTS=%ROOT%tests"
 if exist "%ARTIFACTS%" rmdir /s /q "%ARTIFACTS%"
@@ -24,5 +26,5 @@ if errorlevel 1 exit /b 1
 "%ARTIFACTS%\ReaperTrayHelper.Tests.exe" "%ARTIFACTS%\test-fixtures"
 if errorlevel 1 exit /b 1
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "& '%ROOT%scripts\Package.ps1' -Root '%ROOT%' -Artifacts '%ARTIFACTS%' -Version '1.2.0-rc.1'"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "& '%ROOT%scripts\Package.ps1' -Root '%ROOT%' -Artifacts '%ARTIFACTS%' -Version '%VERSION%'"
 exit /b %errorlevel%
