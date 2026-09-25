@@ -59,13 +59,13 @@ namespace ReaperTrayHelper
             string fullPath = Path.GetFullPath(executablePath);
             if (!File.Exists(fullPath))
             {
-                throw new FileNotFoundException("도우미 실행 파일을 찾을 수 없습니다.", fullPath);
+                throw new FileNotFoundException(UiText.Get("helper_file_missing"), fullPath);
             }
 
             store.CreateOrUpdate(
                 fullPath,
                 Path.GetDirectoryName(fullPath),
-                "Starts REAPER Tray Helper for the current Windows account.");
+                UiText.Get("startup_shortcut_description"));
         }
     }
 
@@ -115,7 +115,7 @@ namespace ReaperTrayHelper
             Type shellType = Type.GetTypeFromProgID("WScript.Shell");
             if (shellType == null)
             {
-                throw new InvalidOperationException("Windows Script Host를 사용할 수 없습니다.");
+                throw new InvalidOperationException(UiText.Get("wsh_unavailable"));
             }
 
             object shell = Activator.CreateInstance(shellType);
@@ -133,4 +133,3 @@ namespace ReaperTrayHelper
         }
     }
 }
-

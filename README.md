@@ -1,64 +1,113 @@
 # REAPER Tray Helper
 
-REAPER Tray Helper는 별도로 설치된 REAPER를 시작하고, 창을 시스템 트레이에 숨기며, 원하는 트랙에 전역 음소거 단축키를 지정하는 Windows용 비공식 도우미입니다.
+REAPER Tray Helper is an unofficial Windows companion for launching REAPER, hiding its window in the system tray, and muting individual tracks with global keyboard shortcuts.
 
-Cockos 또는 REAPER와 제휴·승인·지원 관계가 아닙니다. REAPER 본체, REAPER 라이선스, 플러그인, 오디오 설정 및 프로젝트 파일은 이 프로그램에 포함되지 않으며, 각 사용자가 별도로 준비해야 합니다.
+This project is independent of Cockos and is not approved, endorsed, or supported by Cockos or REAPER. The REAPER application, its license, plug-ins, settings, and project files are not included. Install REAPER separately and use it under its own license.
 
-## 지원 환경
+## Features
 
-- Windows 10/11 x64
-- .NET Framework 4.8 또는 호환되는 Windows .NET Framework 4.x 런타임
-- 별도로 설치한 REAPER
+- Start REAPER and optionally open a selected project.
+- Hide and restore REAPER from the Windows notification area.
+- Register one global shortcut for each named track in the active REAPER project.
+- Choose Automatic, Korean, or English for the helper interface.
 
-이 배포본은 코드 서명되지 않았습니다. 다운로드·실행 전 배포 페이지의 SHA-256 값과 파일을 확인하세요. 체크섬은 파일 동일성을 확인하는 수단이며, 보안 제품의 판정을 대체하지 않습니다.
+## Requirements
 
-## 설치와 최초 설정
+- Windows 10 or 11, 64-bit
+- .NET Framework 4.8 or a compatible .NET Framework 4.x runtime
+- A separate REAPER installation
 
-1. Release의 사용자용 ZIP을 삭제하지 않을 폴더에 압축 해제합니다. EXE와 동봉된 `ReaperTrayHelper_ToggleTrackMute.lua`를 같은 폴더에 둡니다.
-2. `ReaperTrayHelper.exe`를 처음 실행합니다.
-3. 설치된 `reaper.exe`를 선택합니다. 자동으로 열 프로젝트가 있다면 `.rpp`도 선택합니다.
-4. Windows 로그인 시 시작하려면 `Windows 로그인 시 REAPER 자동시작`을 체크하고 저장합니다.
+This release is not code-signed. The published SHA-256 file can confirm that a download matches the release asset; it does not prove that a file is safe or override a security product's warning.
 
-전역 음소거 단축키를 처음 설정할 때는 REAPER에서 한 번 연결해야 합니다.
+## Install and configure
 
-1. REAPER에서 **Options → Preferences → Control/OSC/web → Add**를 열고 OSC 컨트롤 서피스를 추가합니다.
-2. 패턴은 `Default.ReaperOSC`, 장치 IP는 `127.0.0.1`, 장치 포트는 `9001`, 로컬 수신 포트는 도우미 설정의 `REAPER OSC 로컬 수신 포트` 값(기본 `8000`)으로 둡니다.
-3. REAPER Actions 목록을 열고 `ReaScript: Load...`로 동봉 Lua 파일을 불러옵니다. 등록한 스크립트를 우클릭해 **Copy selected action command ID**를 선택하고, 그 ID를 도우미 설정의 `ReaScript 명령 ID`에 붙여 넣습니다.
-4. 도우미 설정의 **OSC 연결 시험**을 눌러 성공을 확인합니다. Actions ID와 OSC 포트 설정은 한 번 저장하면 다음 실행에도 유지됩니다.
+1. Download the user ZIP from Releases and extract the entire ZIP into a folder you will keep. The folder should contain `ReaperTrayHelper.exe`, `ReaperTrayHelper_ToggleTrackMute.lua`, `README.md`, `README.ko.md`, and `LICENSE`.
+2. Run `ReaperTrayHelper.exe`. Choose the installed `reaper.exe`. You may also choose a project file ending in `.rpp`; leave that field empty to use REAPER's existing startup behavior.
+3. Choose **Language** in Settings. **Automatic (Windows)** uses Korean when the Windows display language is Korean and English otherwise. You can select **한국어** or **English** at any time.
+4. To start REAPER when you sign in to Windows, select **Start REAPER when I sign in to Windows** and save. This creates a shortcut in the current Windows account's Startup folder.
 
-설정은 `%LOCALAPPDATA%\ReaperTrayHelper\settings.xml`에 저장됩니다. 자동시작은 현재 Windows 계정의 시작프로그램 바로가기 `REAPER Tray Helper.lnk`로만 등록됩니다.
+The helper saves its settings in `%LOCALAPPDATA%\ReaperTrayHelper\settings.xml`. Changing the REAPER or project path takes effect the next time the helper starts. The language and global shortcuts take effect when you save.
 
-## 사용법
+## Set up global track mute shortcuts
 
-- 새로 시작한 REAPER는 주 창이 준비된 뒤 약 2초 후 트레이로 숨겨집니다.
-- 트레이 아이콘을 더블 클릭하면 REAPER 창을 열거나 숨깁니다.
-- 아이콘을 우클릭하면 열기·숨기기·설정·도우미 종료 메뉴를 사용합니다.
-- 도우미를 종료하면 숨긴 REAPER 창을 표시하고, REAPER 자체는 종료하지 않습니다.
-- 설정에서 자동시작 체크를 끄고 저장하면 해당 바로가기를 제거합니다.
-- 도우미가 실행 중이면 REAPER가 다른 창 뒤에 있거나 트레이에 숨겨져 있어도 전역 단축키가 작동합니다.
-- 설정에서 단축키를 추가하고 트랙 이름을 정확히 입력한 다음 단축키 입력 칸에서 원하는 조합을 누릅니다. 예: `Ctrl+Alt+D1` → `MIC`, `Ctrl+Alt+D2` → `MUSIC`.
-- 한 단축키는 지정 트랙 하나의 음소거만 토글합니다. 성공하면 트레이 알림에 현재 상태가 표시됩니다.
+The OSC and Lua connection is a one-time setup. Keep both REAPER and REAPER Tray Helper running during setup.
 
-## 제한 사항
+### 1. Add an OSC control surface in REAPER
 
-- REAPER가 이미 실행 중이면 프로젝트를 새로 열거나 기존 창을 숨기지 않고 연결만 합니다.
-- 설정한 REAPER가 두 개 이상 실행 중이거나, 권한 차이 때문에 경로를 확인할 수 없으면 연결하지 않고 안내합니다.
-- 평가판 안내·오류·저장 확인 같은 대화상자는 자동으로 닫거나 숨기지 않습니다.
-- 트랙 이름은 활성 프로젝트에서 정확히 일치해야 하며, 같은 이름이 여러 개면 아무 트랙도 바꾸지 않고 오류를 알립니다.
-- 단축키는 도우미가 실행 중일 때만 작동합니다. Windows나 다른 앱이 이미 사용 중인 조합은 저장할 수 없습니다.
-- 이 프로그램은 REAPER 트랙의 음소거만 제어합니다. REAPER 바깥으로 직접 전달되는 마이크 신호나 오디오 라우팅은 제어하지 않습니다.
-- 창을 숨겨도 REAPER 오디오 처리는 계속될 수 있습니다.
+1. In REAPER, open **Options → Preferences…**. Select **Control/OSC/web** from the left side, then click **Add**.
+2. Choose **OSC (Open Sound Control)** and confirm.
+3. In the OSC settings, set **Mode** to **Configure device IP+local port**. The top **Control surface mode** should say **OSC (Open Sound Control)**.
+4. Enter these values:
 
-## 제거
+   | OSC setting | Value |
+   | --- | --- |
+   | Pattern configuration | `Default.ReaperOSC` |
+   | Device IP | `127.0.0.1` |
+   | Device port | `9001` |
+   | Local listen port | The helper's **REAPER OSC local listen port** (default `8000`) |
 
-도우미 설정에서 전역 단축키를 삭제하고 자동시작 체크를 끈 뒤 저장합니다. REAPER Preferences에서 도우미 OSC 컨트롤 서피스를 제거하고 Actions 목록에서 도우미 ReaScript를 지웁니다. 트레이 메뉴에서 도우미를 종료한 다음 압축 해제 폴더와 `%LOCALAPPDATA%\ReaperTrayHelper` 폴더를 삭제하면 됩니다.
+   The REAPER **Local listen port** and the helper's **REAPER OSC local listen port** must use the same number. If another OSC device already uses `8000`, choose another port from `1024` to `65535` in both places.
+5. Confirm the OSC settings, then click **Apply** or **OK** in Preferences. Make sure the OSC surface remains in the control-surface list.
 
-## 소스 빌드와 검증
+### 2. Load the included Lua script
 
-Windows에서 `build.cmd`를 실행하면 `artifacts` 폴더에 실행 파일, Lua 스크립트가 포함된 사용자용 ZIP, 소스 ZIP, SHA-256 목록이 생성됩니다. 빌드 과정은 설정 파일·전역 단축키 검증·OSC 메시지 형식·자동시작 바로가기 처리·REAPER 프로세스 선택을 자동 검사합니다.
+1. In REAPER, open **Actions → Show action list…**. You can also press `?` to open the Action List.
+2. In the Action List window, click **New action…** near the bottom and choose **Load ReaScript…**. The load command is inside the **New action…** button menu, not the main Actions menu.
+3. Browse to the folder where you extracted the helper ZIP. Select `ReaperTrayHelper_ToggleTrackMute.lua`, which is in the same folder as `ReaperTrayHelper.exe`, and open it. Do not edit the Lua file.
+4. The Action List should show an action named `ReaperTrayHelper_ToggleTrackMute.lua`. Search for `ToggleTrackMute` if needed.
+5. Right-click that action and choose **Copy selected action command ID**. The ID normally starts with `_RS` and is copied to the clipboard.
 
-현재 릴리스 후보의 로컬 검사 근거와 다른 Windows PC에서 수행할 필수 검증은 [TESTING.md](TESTING.md)를 참고하세요. 다른 PC의 로그인 자동시작·트레이 숨김/복원·자동시작 해제 검증과 보안 경고 확인이 끝나기 전에는 정식 공개 Release를 만들지 않습니다.
+### 3. Test the connection
 
-## 이용 조건
+1. Open the helper's Settings from its tray icon. The icon may be under the `^` hidden-icons button at the right side of the taskbar.
+2. Confirm that **REAPER OSC local listen port** matches REAPER's **Local listen port**. The default is `8000`.
+3. Click **ReaScript command ID** and paste the copied ID with `Ctrl+V`.
+4. Click **Test OSC connection**. The message **Connected to the REAPER Lua script.** confirms that the connection works.
+5. Add the track shortcuts below and click **Save**.
 
-`LICENSE`를 참고하세요. 이 프로젝트는 소스가 공개되어 있지만 오픈소스 라이선스는 아닙니다.
+### 4. Assign shortcuts to tracks
+
+1. In Settings, click **Add** below the track shortcut list.
+2. Enter the track name exactly as it appears in REAPER's track panel. Spaces and Korean characters are part of the name. For example, enter `MIC` for a track named `MIC`.
+3. Click the shortcut field and press the key combination you want. A shortcut must include at least one of `Ctrl`, `Alt`, or `Shift` plus a regular key. For example, press `Ctrl+Alt+1`. `F12` and some reserved keys are unavailable.
+4. Confirm that the track and shortcut appear in the list, then click **Save**. Repeat for other tracks. You cannot assign the same shortcut twice or assign more than one shortcut to the same track.
+5. Test with a project where the target track name appears exactly once. Pressing its shortcut toggles only that track. A notification shows whether it is muted or unmuted.
+
+### Troubleshooting
+
+- **The OSC connection test times out:** Make sure REAPER is running, the OSC surface is present in Preferences, and both local listen port fields use the same number.
+- **The command ID is rejected:** Copy it again by right-clicking the Lua action and choosing **Copy selected action command ID**. Do not type the script name in place of the ID.
+- **A shortcut cannot be saved:** Windows or another application may already use that combination. Choose another combination. If registration fails, the previously active shortcuts are kept.
+- **The wrong track does not change or an error appears:** Make sure the helper is running, the intended project tab is active, and the track name matches exactly and appears only once in that project.
+
+Shortcuts work while the helper is running, including when another application is in front or REAPER is hidden in the tray. They do not work after REAPER exits. This feature controls REAPER track mute only; it does not mute microphone signal paths outside REAPER.
+
+## Use the tray helper
+
+- A newly launched REAPER window is hidden about two seconds after its main window becomes ready.
+- Double-click the helper's tray icon to show or hide REAPER.
+- Right-click the tray icon to show REAPER, hide it, open Settings, or exit the helper.
+- Exiting the helper restores a hidden REAPER window and leaves REAPER running.
+- If REAPER was already running, the helper attaches to it without opening another project or hiding its window.
+- To disable auto-start, clear **Start REAPER when I sign in to Windows** in Settings and save.
+
+## Remove the helper
+
+In Settings, delete all track shortcuts, clear the auto-start option, and save. In REAPER Preferences, remove the helper's OSC control surface; in the Action List, remove the helper Lua action. Exit the helper from its tray menu, then delete the extracted folder and `%LOCALAPPDATA%\ReaperTrayHelper`.
+
+## Limitations
+
+- If more than one copy of the configured REAPER is running, or its process path cannot be verified, the helper reports an error rather than choosing one at random.
+- The helper does not automatically close trial, error, or save-confirmation dialogs.
+- Track names must match exactly in the active project. If a name occurs more than once, no track is changed.
+- The helper does not control direct microphone paths or audio routing outside REAPER. REAPER audio processing may continue while its window is hidden.
+
+## Build and verification
+
+On Windows, run `build.cmd` to compile the helper, run automated checks, create the user and source ZIPs, and write SHA-256 checksums under `artifacts`. See [TESTING.md](TESTING.md) for test details and the remaining external-PC checks.
+
+## License and trademarks
+
+The helper source and binaries are provided under the [MIT License](LICENSE). The license permits commercial use, sale, modification, and redistribution when the required copyright and license notices are kept. It does not grant rights to Cockos or REAPER trademarks.
+
+REAPER is a trademark of Cockos Incorporated. “REAPER Tray Helper” is an independent project and does not imply endorsement or affiliation.

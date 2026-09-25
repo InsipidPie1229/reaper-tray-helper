@@ -20,6 +20,7 @@ namespace ReaperTrayHelper
         private readonly StartupShortcutManager startup;
         private readonly string helperPath;
         private readonly NotifyIcon trayIcon;
+        private readonly ContextMenuStrip trayMenu;
         private readonly Timer monitorTimer;
         private readonly GlobalHotkeyManager hotkeys;
         private readonly HashSet<IntPtr> hiddenWindows = new HashSet<IntPtr>();
@@ -72,19 +73,14 @@ namespace ReaperTrayHelper
             this.helperPath = helperPath;
 
             applicationIcon = CreateApplicationIcon(out applicationIconHandle);
-            var menu = new ContextMenuStrip();
-            menu.Items.Add("설정 (다음 실행부터 적용)", null, delegate { OpenSettings(); });
-            menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add("REAPER 열기", null, delegate { ShowReaper(); });
-            menu.Items.Add("REAPER 숨기기", null, delegate { HideReaper(); });
-            menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add("트레이 도우미 종료", null, delegate { ExitHelper(); });
+            trayMenu = new ContextMenuStrip();
+            RefreshTrayPresentation();
 
             trayIcon = new NotifyIcon
             {
                 Icon = applicationIcon,
-                Text = "REAPER Tray Helper - 더블 클릭으로 열기/숨기기",
-                ContextMenuStrip = menu,
+                Text = UiText.Get("tray_tooltip"),
+                ContextMenuStrip = trayMenu,
                 Visible = true
             };
             trayIcon.DoubleClick += delegate { ToggleReaper(); };
@@ -95,7 +91,7 @@ namespace ReaperTrayHelper
             reaperProcess = FindOrStartReaper();
             if (reaperProcess == null)
             {
-                throw new InvalidOperationException("REAPER 프로세스를 시작하지 못했습니다.");
+                throw new InvalidOperationException(UiText.Get("start_failed"));
             }
 
             monitorTimer = new Timer { Interval = 500 };
@@ -260,14 +256,27 @@ namespace ReaperTrayHelper
             if (updated != null)
             {
                 settings = updated;
+                RefreshTrayPresentation();
             }
+        }
+
+        private void RefreshTrayPresentation()
+        {
+            trayMenu.Items.Clear();
+            trayMenu.Items.Add(UiText.Get("settings_menu"), null, delegate { OpenSettings(); });
+            trayMenu.Items.Add(new ToolStripSeparator());
+            trayMenu.Items.Add(UiText.Get("open_reaper"), null, delegate { ShowReaper(); });
+            trayMenu.Items.Add(UiText.Get("hide_reaper"), null, delegate { HideReaper(); });
+            trayMenu.Items.Add(new ToolStripSeparator());
+            trayMenu.Items.Add(UiText.Get("exit_helper"), null, delegate { ExitHelper(); });
+            if (trayIcon != null) trayIcon.Text = UiText.Get("tray_tooltip");
         }
 
         private void OnTrackHotkeyPressed(TrackHotkeyBinding binding)
         {
             if (!ReaperOscBridge.IsValidCommandId(settings.ReaperScriptCommandId))
             {
-                ShowHotkeyError("REAPER Lua 스크립트 명령 ID와 OSC 연결을 먼저 설정하세요.");
+                ShowHotkeyError(UiText.Get("hotkey_setup_first"));
                 return;
             }
 
@@ -277,19 +286,19 @@ namespace ReaperTrayHelper
                 string message;
                 switch (result.Code)
                 {
-                    case "MUTED": message = binding.TrackName + " 트랙 음소거"; break;
-                    case "UNMUTED": message = binding.TrackName + " 트랙 음소거 해제"; break;
-                    case "NO_PROJECT": message = "활성 REAPER 프로젝트가 없습니다."; break;
-                    case "NO_TRACK": message = "현재 프로젝트에서 '" + binding.TrackName + "' 트랙을 찾지 못했습니다."; break;
-                    case "DUPLICATE_TRACK": message = "현재 프로젝트에 '" + binding.TrackName + "' 이름의 트랙이 여러 개 있습니다. 이름을 고유하게 바꾸세요."; break;
-                    case "TIMEOUT": message = "REAPER가 응답하지 않았습니다. REAPER OSC 포트와 스크립트 명령 ID를 확인하세요."; break;
-                    default: message = "REAPER 트랙을 전환하지 못했습니다. (" + result.Code + ")"; break;
+                    case "MUTED": message = binding.TrackName + " - " + UiText.Get("muted"); break;
+                    case "UNMUTED": message = binding.TrackName + " - " + UiText.Get("unmuted"); break;
+                    case "NO_PROJECT": message = UiText.Get("no_active_project"); break;
+                    case "NO_TRACK": message = UiText.Format("track_not_found", binding.TrackName); break;
+                    case "DUPLICATE_TRACK": message = UiText.Format("track_name_duplicated", binding.TrackName); break;
+                    case "TIMEOUT": message = UiText.Get("reaper_timeout"); break;
+                    default: message = UiText.Format("toggle_failed", result.Code); break;
                 }
                 ShowHotkeyNotice(message, result.Code == "MUTED" || result.Code == "UNMUTED" ? 1500 : 3500);
             }
             catch (Exception ex)
             {
-                ShowHotkeyError("REAPER 음소거 단축키 오류: " + ex.Message);
+                ShowHotkeyError(UiText.Format("hotkey_error", ex.Message));
             }
         }
 

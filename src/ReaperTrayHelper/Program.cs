@@ -40,7 +40,7 @@ namespace ReaperTrayHelper
                 catch (Exception ex)
                 {
                     MessageBox.Show(
-                        "REAPER 자동시작 도우미를 시작하지 못했습니다.\n\n" + ex.Message,
+                        UiText.Get("startup_error") + "\n\n" + ex.Message,
                         ApplicationName,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error);

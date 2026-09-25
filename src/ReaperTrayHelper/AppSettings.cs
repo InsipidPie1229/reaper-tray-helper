@@ -16,6 +16,12 @@ namespace ReaperTrayHelper
         public int ReaperOscPort { get; set; }
         public string ReaperScriptCommandId { get; set; }
         public List<TrackHotkeyBinding> TrackHotkeys { get; set; }
+        public string LanguageMode { get; set; }
+
+        public AppSettings()
+        {
+            LanguageMode = UiText.Automatic;
+        }
 
         public static string SettingsFile
         {
@@ -42,14 +48,14 @@ namespace ReaperTrayHelper
                 !File.Exists(ReaperPath) ||
                 !String.Equals(Path.GetFileName(ReaperPath), "reaper.exe", StringComparison.OrdinalIgnoreCase))
             {
-                return "설치된 REAPER의 reaper.exe 파일을 선택하세요.";
+                return UiText.Get("invalid_reaper_path");
             }
 
             if (!String.IsNullOrWhiteSpace(ProjectPath) &&
                 (!File.Exists(ProjectPath) ||
                  !String.Equals(Path.GetExtension(ProjectPath), ".rpp", StringComparison.OrdinalIgnoreCase)))
             {
-                return "사용할 .rpp 프로젝트를 선택하거나 프로젝트 칸을 비워 두세요.";
+                return UiText.Get("invalid_project_path");
             }
 
             string hotkeyError = TrackHotkeyBinding.ValidationError(TrackHotkeys);
@@ -57,9 +63,9 @@ namespace ReaperTrayHelper
             if (TrackHotkeys != null && TrackHotkeys.Count > 0)
             {
                 if (ReaperOscPort < 1024 || ReaperOscPort > 65535)
-                    return "REAPER OSC 수신 포트는 1024~65535 사이여야 합니다.";
+                    return UiText.Get("invalid_osc_port");
                 if (!ReaperOscBridge.IsValidCommandId(ReaperScriptCommandId))
-                    return "트랙 단축키를 사용하려면 ReaScript 명령 ID를 입력하세요.";
+                    return UiText.Get("missing_command_id");
             }
 
             return null;
@@ -103,17 +109,20 @@ namespace ReaperTrayHelper
 
         internal static AppSettings LoadOrConfigure(StartupShortcutManager startup, string executablePath, GlobalHotkeyManager hotkeys = null)
         {
+            UiText.Apply(UiText.Automatic);
             AppSettings settings = null;
             if (File.Exists(SettingsFile))
             {
                 try
                 {
                     settings = Load(SettingsFile);
+                    settings.LanguageMode = UiText.Normalize(settings.LanguageMode);
+                    UiText.Apply(settings.LanguageMode);
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(
-                        "기존 설정 파일을 읽지 못해 다시 설정합니다.\n\n" + ex.Message,
+                        UiText.Get("settings_corrupt") + "\n\n" + ex.Message,
                         Program.ApplicationName,
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Warning);
@@ -125,7 +134,7 @@ namespace ReaperTrayHelper
                 settings.StartWithWindows = startup.IsEnabled(executablePath);
                 if (hotkeys == null || hotkeys.Replace(settings.TrackHotkeys) == null) return settings;
                 MessageBox.Show(
-                    "저장된 전역 단축키를 등록하지 못했습니다. 설정을 열어 충돌하는 키를 수정하세요.",
+                    UiText.Get("stored_hotkey_conflict"),
                     Program.ApplicationName,
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
@@ -143,25 +152,42 @@ namespace ReaperTrayHelper
 
         internal static AppSettings Configure(AppSettings current, StartupShortcutManager startup, string executablePath, GlobalHotkeyManager hotkeys = null)
         {
+            UiText.Apply(current.LanguageMode);
             using (var form = new Form())
             {
-                form.Text = "REAPER 자동시작 도우미 설정";
+                form.Text = UiText.Get("settings_title");
                 form.ClientSize = new System.Drawing.Size(760, 570);
                 form.FormBorderStyle = FormBorderStyle.FixedDialog;
                 form.StartPosition = FormStartPosition.CenterScreen;
                 form.MaximizeBox = false;
                 form.MinimizeBox = false;
 
+                var languageLabel = new Label { Left = 620, Top = 18, Width = 120, Text = UiText.Get("language_label") };
+                var languageChoice = new ComboBox
+                {
+                    Left = 620,
+                    Top = 40,
+                    Width = 120,
+                    DropDownStyle = ComboBoxStyle.DropDownList
+                };
+                languageChoice.Items.AddRange(new object[]
+                {
+                    UiText.Get("language_auto"),
+                    UiText.Get("language_korean"),
+                    UiText.Get("language_english")
+                });
+                languageChoice.SelectedIndex = UiText.ModeIndex(current.LanguageMode);
+
                 var reaperPath = new TextBox { Left = 20, Top = 43, Width = 500, Text = current.ReaperPath ?? "" };
                 var projectPath = new TextBox { Left = 20, Top = 113, Width = 500, Text = current.ProjectPath ?? "" };
-                var reaperBrowse = new Button { Left = 530, Top = 41, Width = 85, Text = "찾아보기" };
-                var projectBrowse = new Button { Left = 530, Top = 111, Width = 85, Text = "찾아보기" };
+                var reaperBrowse = new Button { Left = 530, Top = 41, Width = 85, Text = UiText.Get("browse") };
+                var projectBrowse = new Button { Left = 530, Top = 111, Width = 85, Text = UiText.Get("browse") };
                 var startupCheck = new CheckBox
                 {
                     Left = 20,
                     Top = 157,
                     Width = 360,
-                    Text = "Windows 로그인 시 REAPER 자동시작",
+                    Text = UiText.Get("auto_start"),
                     Checked = current.StartWithWindows
                 };
                 var note = new Label
@@ -170,9 +196,9 @@ namespace ReaperTrayHelper
                     Top = 187,
                     Width = 595,
                     Height = 42,
-                    Text = "자동시작은 현재 Windows 계정의 시작프로그램 바로가기로 등록됩니다.\n프로젝트 경로를 비워 두면 REAPER의 기존 시작 설정을 사용합니다."
+                    Text = UiText.Get("startup_note")
                 };
-                var hotkeyLabel = new Label { Left = 20, Top = 238, Width = 500, Text = "트랙별 전역 음소거 단축키 (현재 활성 REAPER 프로젝트)" };
+                var hotkeyLabel = new Label { Left = 20, Top = 238, Width = 500, Text = UiText.Get("hotkeys_heading") };
                 var hotkeyList = new ListView
                 {
                     Left = 20,
@@ -184,21 +210,21 @@ namespace ReaperTrayHelper
                     GridLines = true,
                     MultiSelect = false
                 };
-                hotkeyList.Columns.Add("트랙 이름", 320);
-                hotkeyList.Columns.Add("단축키", 170);
-                var hotkeyAdd = new Button { Left = 550, Top = 260, Width = 190, Text = "추가" };
-                var hotkeyEdit = new Button { Left = 550, Top = 296, Width = 190, Text = "수정" };
-                var hotkeyDelete = new Button { Left = 550, Top = 332, Width = 190, Text = "삭제" };
+                hotkeyList.Columns.Add(UiText.Get("column_track"), 320);
+                hotkeyList.Columns.Add(UiText.Get("column_shortcut"), 170);
+                var hotkeyAdd = new Button { Left = 550, Top = 260, Width = 190, Text = UiText.Get("add") };
+                var hotkeyEdit = new Button { Left = 550, Top = 296, Width = 190, Text = UiText.Get("edit") };
+                var hotkeyDelete = new Button { Left = 550, Top = 332, Width = 190, Text = UiText.Get("delete") };
                 var oscPort = new NumericUpDown { Left = 550, Top = 405, Width = 90, Minimum = 1024, Maximum = 65535, Value = current.ReaperOscPort >= 1024 && current.ReaperOscPort <= 65535 ? current.ReaperOscPort : 8000 };
                 var commandId = new TextBox { Left = 20, Top = 486, Width = 520, Text = current.ReaperScriptCommandId ?? "" };
-                var connectionTest = new Button { Left = 550, Top = 484, Width = 190, Text = "OSC 연결 시험" };
+                var connectionTest = new Button { Left = 550, Top = 484, Width = 190, Text = UiText.Get("connection_test") };
                 var setupNote = new Label
                 {
                     Left = 20,
                     Top = 386,
                     Width = 720,
                     Height = 20,
-                    Text = "REAPER OSC 로컬 수신 포트 (Default.ReaperOSC, 장치 IP 127.0.0.1, 장치 포트 9001)"
+                    Text = UiText.Get("osc_port_label")
                 };
                 var guideNote = new Label
                 {
@@ -206,15 +232,15 @@ namespace ReaperTrayHelper
                     Top = 438,
                     Width = 720,
                     Height = 24,
-                    Text = "Actions에서 동봉 Lua 스크립트를 불러온 뒤 명령 ID를 복사해 입력하세요."
+                    Text = UiText.Get("command_id_hint")
                 };
-                var commandLabel = new Label { Left = 20, Top = 464, Width = 520, Text = "ReaScript 명령 ID" };
-                var save = new Button { Left = 550, Top = 535, Width = 90, Text = "저장" };
-                var cancel = new Button { Left = 650, Top = 535, Width = 90, Text = "취소", DialogResult = DialogResult.Cancel };
+                var commandLabel = new Label { Left = 20, Top = 464, Width = 520, Text = UiText.Get("command_id_label") };
+                var save = new Button { Left = 550, Top = 535, Width = 90, Text = UiText.Get("save") };
+                var cancel = new Button { Left = 650, Top = 535, Width = 90, Text = UiText.Get("cancel"), DialogResult = DialogResult.Cancel };
 
-                form.Controls.Add(new Label { Left = 20, Top = 18, Width = 560, Text = "REAPER 실행 파일 (reaper.exe)" });
-                form.Controls.Add(new Label { Left = 20, Top = 88, Width = 560, Text = "시작할 프로젝트 (.rpp) — 선택 사항" });
-                form.Controls.AddRange(new Control[] { reaperPath, projectPath, reaperBrowse, projectBrowse, startupCheck, note, hotkeyLabel, hotkeyList, hotkeyAdd, hotkeyEdit, hotkeyDelete, oscPort, setupNote, commandLabel, commandId, connectionTest, guideNote, save, cancel });
+                form.Controls.Add(new Label { Left = 20, Top = 18, Width = 560, Text = UiText.Get("reaper_path_label") });
+                form.Controls.Add(new Label { Left = 20, Top = 88, Width = 560, Text = UiText.Get("project_path_label") });
+                form.Controls.AddRange(new Control[] { languageLabel, languageChoice, reaperPath, projectPath, reaperBrowse, projectBrowse, startupCheck, note, hotkeyLabel, hotkeyList, hotkeyAdd, hotkeyEdit, hotkeyDelete, oscPort, setupNote, commandLabel, commandId, connectionTest, guideNote, save, cancel });
                 form.AcceptButton = save;
                 form.CancelButton = cancel;
 
@@ -264,23 +290,23 @@ namespace ReaperTrayHelper
                     string id = commandId.Text.Trim();
                     if (!ReaperOscBridge.IsValidCommandId(id))
                     {
-                        MessageBox.Show(form, "Actions 목록에서 복사한 ReaScript 명령 ID를 입력하세요.", Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show(form, UiText.Get("copy_command_id"), Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Information);
                         return;
                     }
                     try
                     {
                         ReaperOscBridge.Test((int)oscPort.Value, id);
-                        MessageBox.Show(form, "REAPER Lua 스크립트와 연결되었습니다.", Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show(form, UiText.Get("osc_connected"), Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show(form, "연결하지 못했습니다. REAPER OSC 포트와 ReaScript 명령 ID를 확인하세요.\n\n" + ex.Message, Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show(form, UiText.Get("osc_failed") + "\n\n" + ex.Message, Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                 };
 
                 reaperBrowse.Click += delegate
                 {
-                    using (var dialog = new OpenFileDialog { Filter = "REAPER|reaper.exe", Title = "REAPER 실행 파일 선택" })
+                    using (var dialog = new OpenFileDialog { Filter = "REAPER|reaper.exe", Title = UiText.Get("choose_reaper") })
                     {
                         if (dialog.ShowDialog(form) == DialogResult.OK)
                         {
@@ -291,7 +317,7 @@ namespace ReaperTrayHelper
 
                 projectBrowse.Click += delegate
                 {
-                    using (var dialog = new OpenFileDialog { Filter = "REAPER 프로젝트|*.rpp", Title = "시작할 프로젝트 선택" })
+                    using (var dialog = new OpenFileDialog { Filter = UiText.Get("project_filter"), Title = UiText.Get("choose_project") })
                     {
                         if (dialog.ShowDialog(form) == DialogResult.OK)
                         {
@@ -310,7 +336,8 @@ namespace ReaperTrayHelper
                         StartWithWindows = startupCheck.Checked,
                         ReaperOscPort = (int)oscPort.Value,
                         ReaperScriptCommandId = commandId.Text.Trim(),
-                        TrackHotkeys = bindings
+                        TrackHotkeys = bindings,
+                        LanguageMode = languageChoice.SelectedIndex == 1 ? UiText.Korean : languageChoice.SelectedIndex == 2 ? UiText.English : UiText.Automatic
                     };
 
                     string error = candidate.ValidationError();
@@ -336,7 +363,7 @@ namespace ReaperTrayHelper
                         candidate.StartWithWindows = startup.IsEnabled(executablePath);
                         if (candidate.StartWithWindows != startupCheck.Checked)
                         {
-                            throw new InvalidOperationException("자동시작 바로가기를 확인하지 못했습니다.");
+                            throw new InvalidOperationException(UiText.Get("startup_verify_failed"));
                         }
 
                         candidate.Save(SettingsFile);
@@ -346,13 +373,14 @@ namespace ReaperTrayHelper
                         if (hotkeys != null) hotkeys.Replace(current.TrackHotkeys);
                         MessageBox.Show(
                             form,
-                            "설정을 저장하지 못했습니다.\n\n" + ex.Message,
+                            UiText.Get("settings_save_failed") + "\n\n" + ex.Message,
                             Program.ApplicationName,
                             MessageBoxButtons.OK,
                             MessageBoxIcon.Error);
                         return;
                     }
 
+                    UiText.Apply(candidate.LanguageMode);
                     result = candidate;
                     form.DialogResult = DialogResult.OK;
                 };

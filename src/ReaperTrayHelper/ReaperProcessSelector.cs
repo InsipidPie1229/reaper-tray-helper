@@ -45,7 +45,7 @@ namespace ReaperTrayHelper
 
             if (processes.Any(process => !process.PathWasRead))
             {
-                throw new InvalidOperationException("실행 중인 REAPER의 경로를 확인할 수 없습니다. 같은 권한으로 실행 중인지 확인하세요.");
+                throw new InvalidOperationException(UiText.Get("process_path_unreadable"));
             }
 
             var matches = processes
@@ -57,7 +57,7 @@ namespace ReaperTrayHelper
 
             if (matches.Count > 1)
             {
-                throw new InvalidOperationException("설정한 REAPER가 여러 개 실행 중입니다. 하나만 남긴 뒤 다시 실행하세요.");
+                throw new InvalidOperationException(UiText.Get("multiple_processes"));
             }
 
             if (matches.Count == 1)
@@ -69,4 +69,3 @@ namespace ReaperTrayHelper
         }
     }
 }
-

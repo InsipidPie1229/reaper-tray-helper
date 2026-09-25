@@ -25,6 +25,7 @@ internal static class ReaperTrayHelperTests
             string root = Path.GetFullPath(args[0]);
             Directory.CreateDirectory(root);
             TestSettings(root);
+            TestLocalization();
             TestTrackHotkeys();
             TestGlobalHotkeyRegistration();
             TestOscBridge();
@@ -55,6 +56,7 @@ internal static class ReaperTrayHelperTests
             StartWithWindows = true,
             ReaperOscPort = 8000,
             ReaperScriptCommandId = "_RSabc123",
+            LanguageMode = UiText.English,
             TrackHotkeys = new List<TrackHotkeyBinding>
             {
                 new TrackHotkeyBinding { TrackName = "마이크", Modifiers = GlobalHotkeyManager.MOD_CONTROL | GlobalHotkeyManager.MOD_ALT, VirtualKey = (int)System.Windows.Forms.Keys.D1 }
@@ -66,7 +68,7 @@ internal static class ReaperTrayHelperTests
         string settingsFile = Path.Combine(root, "settings.xml");
         settings.Save(settingsFile);
         AppSettings restored = AppSettings.Load(settingsFile);
-        Check(restored.ReaperPath == reaper && restored.ProjectPath == project && restored.StartWithWindows && restored.TrackHotkeys.Count == 1 && restored.TrackHotkeys[0].TrackName == "마이크", "settings XML round trip includes track hotkeys");
+        Check(restored.ReaperPath == reaper && restored.ProjectPath == project && restored.StartWithWindows && restored.TrackHotkeys.Count == 1 && restored.TrackHotkeys[0].TrackName == "마이크" && restored.LanguageMode == UiText.English, "settings XML round trip includes track hotkeys and language");
 
         settings.ProjectPath = "";
         Check(settings.ValidationError() == null && settings.Arguments == "", "project is optional");
@@ -85,7 +87,24 @@ internal static class ReaperTrayHelperTests
         string escapedReaper = System.Security.SecurityElement.Escape(reaper);
         File.WriteAllText(settingsFile, "<AppSettings><ReaperPath>" + escapedReaper + "</ReaperPath><ProjectPath></ProjectPath><StartWithWindows>false</StartWithWindows></AppSettings>");
         AppSettings legacy = AppSettings.Load(settingsFile);
-        Check(legacy.TrackHotkeys != null && legacy.TrackHotkeys.Count == 0 && legacy.ValidationError() == null, "load existing settings without hotkey fields");
+        Check(legacy.TrackHotkeys != null && legacy.TrackHotkeys.Count == 0 && legacy.LanguageMode == UiText.Automatic && legacy.ValidationError() == null, "load existing settings without hotkey or language fields");
+    }
+
+    private static void TestLocalization()
+    {
+        Check(UiText.HasMatchingTranslationKeys(), "English and Korean translation keys match");
+        Check(UiText.ResolveLanguage(UiText.Automatic, new System.Globalization.CultureInfo("ko-KR")) == UiText.Korean, "automatic language follows Korean Windows UI culture");
+        Check(UiText.ResolveLanguage(UiText.Automatic, new System.Globalization.CultureInfo("en-US")) == UiText.English, "automatic language uses English for non-Korean culture");
+        Check(UiText.ResolveLanguage(UiText.English, new System.Globalization.CultureInfo("ko-KR")) == UiText.English, "manual English overrides Windows culture");
+        Check(UiText.ResolveLanguage(UiText.Korean, new System.Globalization.CultureInfo("en-US")) == UiText.Korean, "manual Korean overrides Windows culture");
+
+        UiText.Apply(UiText.English);
+        Check(UiText.Get("settings_title") == "REAPER Tray Helper Settings", "English settings title is localized");
+        Check(UiText.Get("hotkey_track_required") == "Enter a REAPER track name for every shortcut.", "English validation message is localized");
+        UiText.Apply(UiText.Korean);
+        Check(UiText.Get("settings_title") == "REAPER 자동시작 도우미 설정", "Korean settings title is localized");
+        Check(UiText.Get("hotkey_track_required") == "각 단축키에 REAPER 트랙 이름을 입력하세요.", "Korean validation message is localized");
+        UiText.Apply(UiText.Automatic);
     }
 
     private static void TestTrackHotkeys()

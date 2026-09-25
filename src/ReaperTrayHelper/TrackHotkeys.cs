@@ -39,17 +39,17 @@ namespace ReaperTrayHelper
             foreach (TrackHotkeyBinding binding in bindings ?? new List<TrackHotkeyBinding>())
             {
                 if (binding == null || String.IsNullOrWhiteSpace(binding.TrackName))
-                    return "각 단축키에 REAPER 트랙 이름을 입력하세요.";
+                    return UiText.Get("hotkey_track_required");
                 if (binding.Modifiers == 0 || (binding.Modifiers & ~(GlobalHotkeyManager.MOD_CONTROL | GlobalHotkeyManager.MOD_ALT | GlobalHotkeyManager.MOD_SHIFT)) != 0)
-                    return "단축키에는 Ctrl, Alt, Shift 중 하나 이상이 필요합니다.";
+                    return UiText.Get("hotkey_modifier_required");
                 if (binding.VirtualKey <= 0 || binding.VirtualKey > 0xFE || binding.VirtualKey == 0x7B ||
                     binding.VirtualKey == 0x10 || binding.VirtualKey == 0x11 || binding.VirtualKey == 0x12 ||
                     binding.VirtualKey == 0x5B || binding.VirtualKey == 0x5C)
-                    return "F12 또는 지원하지 않는 키는 단축키로 사용할 수 없습니다.";
+                    return UiText.Get("hotkey_unsupported");
 
                 string chord = binding.Modifiers + ":" + binding.VirtualKey;
-                if (!keys.Add(chord)) return "같은 단축키가 두 개 이상 지정되어 있습니다.";
-                if (!names.Add(binding.TrackName)) return "같은 트랙 이름이 여러 단축키에 지정되어 있습니다. 트랙별 단축키는 하나만 지정할 수 있습니다.";
+                if (!keys.Add(chord)) return UiText.Get("duplicate_shortcut");
+                if (!names.Add(binding.TrackName)) return UiText.Get("duplicate_track");
             }
             return null;
         }
@@ -61,7 +61,7 @@ namespace ReaperTrayHelper
         {
             using (var form = new Form())
             {
-                form.Text = existing == null ? "트랙 단축키 추가" : "트랙 단축키 수정";
+                form.Text = existing == null ? UiText.Get("add") + " - " + UiText.Get("column_track") : UiText.Get("edit") + " - " + UiText.Get("column_track");
                 form.ClientSize = new System.Drawing.Size(420, 165);
                 form.FormBorderStyle = FormBorderStyle.FixedDialog;
                 form.StartPosition = FormStartPosition.CenterParent;
@@ -91,13 +91,13 @@ namespace ReaperTrayHelper
                     e.SuppressKeyPress = true;
                 };
 
-                var save = new Button { Left = 220, Top = 130, Width = 85, Text = "확인" };
-                var cancel = new Button { Left = 315, Top = 130, Width = 85, Text = "취소", DialogResult = DialogResult.Cancel };
+                var save = new Button { Left = 220, Top = 130, Width = 85, Text = UiText.Get("confirm") };
+                var cancel = new Button { Left = 315, Top = 130, Width = 85, Text = UiText.Get("cancel"), DialogResult = DialogResult.Cancel };
                 form.Controls.AddRange(new Control[]
                 {
-                    new Label { Left = 18, Top = 18, Width = 380, Text = "REAPER 트랙 이름 (철자와 띄어쓰기 그대로)" },
+                    new Label { Left = 18, Top = 18, Width = 380, Text = UiText.Get("hotkey_track_label") },
                     name,
-                    new Label { Left = 18, Top = 71, Width = 380, Text = "단축키 (Ctrl/Alt/Shift와 키를 누르세요)" },
+                    new Label { Left = 18, Top = 71, Width = 380, Text = UiText.Get("hotkey_chord_label") },
                     chord, save, cancel
                 });
                 form.AcceptButton = save;
@@ -108,12 +108,12 @@ namespace ReaperTrayHelper
                 {
                     if (String.IsNullOrWhiteSpace(name.Text))
                     {
-                        MessageBox.Show(form, "트랙 이름을 입력하세요.", Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show(form, UiText.Get("enter_track_name"), Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Information);
                         return;
                     }
                     if (modifiers == 0 || virtualKey == 0)
                     {
-                        MessageBox.Show(form, "Ctrl, Alt, Shift 중 하나 이상과 함께 사용할 키를 지정하세요.", Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show(form, UiText.Get("enter_shortcut"), Program.ApplicationName, MessageBoxButtons.OK, MessageBoxIcon.Information);
                         return;
                     }
                     result = new TrackHotkeyBinding { TrackName = name.Text, Modifiers = modifiers, VirtualKey = virtualKey };
@@ -173,8 +173,8 @@ namespace ReaperTrayHelper
             UnregisterAll();
             string restoreError = RegisterAll(previous);
             return restoreError == null
-                ? error + " 기존 단축키는 유지했습니다."
-                : error + " 기존 단축키를 복구하지 못했습니다. 도우미를 다시 실행하세요.";
+                ? error + " " + UiText.Get("keep_old_hotkeys")
+                : error + " " + UiText.Get("restore_hotkeys_failed");
         }
 
         private string RegisterAll(IEnumerable<TrackHotkeyBinding> bindings)
@@ -185,7 +185,7 @@ namespace ReaperTrayHelper
                 int code;
                 if (!registrar.Register(hostHandle, id, (uint)binding.Modifiers | MOD_NOREPEAT, (uint)binding.VirtualKey, out code))
                 {
-                    return "단축키 " + binding.DisplayShortcut + "를 등록할 수 없습니다. 다른 프로그램과 충돌하거나 Windows 예약 키일 수 있습니다. (오류 " + code + ")";
+                    return UiText.Format("registration_failed", binding.DisplayShortcut, code);
                 }
                 registered.Add(id, binding.Clone());
             }

@@ -36,7 +36,7 @@ namespace ReaperTrayHelper
         {
             ReaperOscResult result = Request(port, commandId, "PING", "");
             if (result.Code != "PING_OK")
-                throw new InvalidOperationException("스크립트 응답: " + result.Code);
+                throw new InvalidOperationException(UiText.Format("script_response", result.Code));
         }
 
         internal static ReaperOscResult ToggleTrack(int port, string commandId, string trackName)
@@ -58,7 +58,7 @@ namespace ReaperTrayHelper
         private static ReaperOscResult Request(int port, string commandId, string operation, string trackName)
         {
             if (port < 1024 || port > 65535) throw new ArgumentOutOfRangeException("port");
-            if (!IsValidCommandId(commandId)) throw new ArgumentException("잘못된 ReaScript 명령 ID입니다.", "commandId");
+            if (!IsValidCommandId(commandId)) throw new ArgumentException(UiText.Get("invalid_command_id"), "commandId");
 
             Directory.CreateDirectory(BridgeDirectory);
             string id = Guid.NewGuid().ToString("N");

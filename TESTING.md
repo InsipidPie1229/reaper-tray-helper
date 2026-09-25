@@ -1,29 +1,30 @@
-# v1.1.0-rc.2 release-candidate verification
+# v1.2.0-rc.1 release-candidate verification
 
 ## Local automated checks
 
-Run `build.cmd` from the repository root. It compiles the application and runs the test assembly before creating packages.
+Run `build.cmd` from the repository root. It compiles the application, runs the test assembly, creates the user and source ZIPs, and writes `SHA256SUMS.txt` under `artifacts`.
 
-The current candidate passed 37 automated checks covering:
+The current candidate passed 46 automated checks covering:
 
-- valid, optional, corrupt, and hostile XML settings files;
-- invalid REAPER and project paths, including a Unicode path with spaces;
+- valid, optional, corrupt, hostile XML settings, Unicode paths, previous settings without language/hotkey fields, and language persistence;
+- Automatic language selection for Korean and non-Korean Windows cultures, manual overrides, localized validation, and matching English/Korean translation keys;
 - creating, detecting, updating, and removing only this helper's startup shortcut;
-- launching REAPER when it is absent;
-- attaching without hiding when exactly one configured REAPER is already running; and
-- rejecting multiple configured REAPER processes or a process whose executable path cannot be read;
-- settings round trip with Unicode track names and loading the previous settings format;
-- independent per-track key assignments, duplicate key/name rejection, reserved-key rejection, and empty defaults; and
-- OSC action packet address, string argument, and command ID validation.
+- independent global track shortcuts, duplicate and reserved keys, failed-registration rollback, and unregistering removed shortcuts;
+- OSC action packet and ReaScript command ID validation; and
+- REAPER launch/attach selection, multiple process rejection, and unreadable process paths.
 
-The build host has REAPER 7.80 installed. On 2026-09-25, Windows Defender's command-line scanner reported no threat for the candidate EXE and both ZIP files. The PowerShell Defender status query was denied, so the current engine and signature versions could not be recorded. This is a point-in-time scan result, not a safety guarantee or an explanation for any browser warning.
+The previous `v1.1.0-rc.2` EXE and ZIPs were scanned with Windows Defender on 2026-09-25 and reported no threat at that time. That scan does not cover this `v1.2.0-rc.1` candidate. The Defender engine/signature version and the original Chrome warning remain unverified, so do not describe the new files as security-scanned or as having resolved the prior warning. This is not a safety guarantee.
+
+## Package review
+
+The user ZIP contains only the helper EXE, Lua script, English and Korean README files, and MIT `LICENSE`. The source ZIP contains source and build/test documentation and no EXE, DLL, or installer script. The package script checks for known personal paths and licensed REAPER content. SHA-256 values identify the exact files but do not certify safety.
 
 ## Required independent Windows test
 
-Run this exact checklist on a different Windows 10 or Windows 11 x64 PC using the same ZIP and record the ZIP SHA-256 first.
+Run this checklist on a different Windows 10 or Windows 11 x64 PC using the exact user ZIP from this candidate. Record its SHA-256 first.
 
 1. Extract the ZIP to a permanent folder. Do not run it directly from the ZIP.
-2. Start `ReaperTrayHelper.exe`, select that PC's installed `reaper.exe`, optionally select a test `.rpp`, enable `Windows 로그인 시 REAPER 자동시작`, and save.
+2. Start `ReaperTrayHelper.exe`, select that PC's installed `reaper.exe`, optionally select a test `.rpp`, and save. Switch the Language selector among Automatic, Korean, and English; restart the helper and confirm the selected language persists.
 3. In REAPER Preferences, add an OSC surface using `Default.ReaperOSC`, device IP `127.0.0.1`, device port `9001`, and local port `8000` (or the helper's configured port). Load the included Lua script in Actions, copy its command ID, paste it into helper settings, and confirm the connection test.
 4. Confirm that the current user's Startup folder contains exactly one `REAPER Tray Helper.lnk` pointing to the extracted helper EXE.
 5. Create a disposable project with uniquely named tracks `MIC 한글` and `MUSIC`. Assign `Ctrl+Alt+D1` and `Ctrl+Alt+D2`; use Notepad as the foreground app and verify each chord changes only its assigned track. Verify the tray notification matches the resulting mute state.
@@ -35,4 +36,4 @@ Run this exact checklist on a different Windows 10 or Windows 11 x64 PC using th
 
 ## Publication gate
 
-Do not publish a stable `v1.1.0` Release until the independent test passes and the exact prior Chrome warning has been classified as a malware detection or a reputation/download warning. A clearly labelled prerelease may be shared solely for this external test, provided that it states that it is unsigned and that the prior warning is still unclassified. If a malware detection remains, pause the stable release and use the detecting vendor's official false-positive review process. Do not bypass warnings by disabling security tools, password-protecting archives, renaming extensions, or distributing disguised files.
+This candidate is a prerelease for review and testing, unsigned, and is not a stable release. Do not publish a stable release until the independent test passes and the exact prior Chrome warning has been classified as a malware detection or a reputation/download warning. If a malware detection remains, pause stable publication and use the detecting vendor's official review process. Do not bypass warnings by disabling security tools, password-protecting archives, renaming extensions, or disguising files.
